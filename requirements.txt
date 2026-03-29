@@ -1,0 +1,25 @@
+# Core
+fastapi
+uvicorn
+gradio
+pydantic
+pydantic-settings
+python-dotenv
+pyyaml
+
+# AI & LLM
+google-generativeai
+huggingface_hub
+Pillow
+
+# Database & Async
+sqlalchemy
+#psycopg2-beta
+asyncpg
+arq
+redis
+
+# PDF Export
+fpdf2
+fonttools
+requests

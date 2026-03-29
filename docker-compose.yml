@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: genstory_app
+    ports:
+      - "8000:8000"
+      - "7860:7860"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    command: python -m src.ui.app
+
+  db:
+    image: postgres:15-alpine
+    container_name: genstory_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-genstory}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-genstory_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+  adminer:
+    image: adminer:latest
+    container_name: genstory_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: genstory_redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
