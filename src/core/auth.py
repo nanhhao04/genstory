@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "b3d3c8e4f5a6b7c8d9e0f1a2b3c4d5e6f") # Change in .env
+SECRET_KEY = os.getenv("JWT_SECRET_KEY") # Change in .env
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 week
 
