@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="dark" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>GenStory — Thiết Lập Câu Chuyện</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700;900&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .star-field {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface bg-surface-dim min-h-screen">
+    <div class="nebula-bg">
+        <div class="star-field"></div>
+    </div>
+
+    <!-- TopNavBar -->
+    <nav class="fixed top-0 w-full border-b border-white/10 bg-black/40 backdrop-blur-xl shadow-[0_0_20px_rgba(192,132,252,0.1)] flex justify-between items-center px-10 lg:px-20 h-16 z-50">
+        <div class="text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-300 cursor-pointer" onclick="window.location.href='/dashboard'">
+            GenStory
+        </div>
+        <div class="hidden md:flex gap-8">
+            <a class="font-['Noto_Serif'] tracking-wide uppercase text-sm text-purple-400 border-b-2 border-purple-500 pb-1" href="/story/new">KHỞI TẠO</a>
+            <a class="font-['Noto_Serif'] tracking-wide uppercase text-sm text-slate-400 hover:text-white transition-colors" href="/dashboard">THƯ VIỆN</a>
+            <a class="font-['Noto_Serif'] tracking-wide uppercase text-sm text-slate-400 hover:text-white transition-colors" href="#">TÀI KHOẢN</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="user-display" class="text-xs font-bold text-primary">User</span>
+            <div class="w-8 h-8 rounded-full border border-purple-500/30 flex items-center justify-center bg-white/5">
+                <span class="material-symbols-outlined text-purple-400">person</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20 px-8 lg:px-20 max-w-7xl mx-auto">
+        <header class="mb-12 text-center">
+            <h1 class="text-5xl font-bold text-primary mb-4 font-['Noto_Serif']">Khởi Tạo Vũ Trụ Của Bạn</h1>
+            <p class="text-lg text-outline max-w-2xl mx-auto">
+                Sử dụng quyền năng của Cosmic AI để dệt nên những câu chuyện huyền thoại. Mỗi lựa chọn của bạn là một vì sao mới.
+            </p>
+        </header>
+
+        <form id="setup-form" class="grid grid-cols-12 gap-8">
+            <!-- Left Column: Story Core -->
+            <div class="col-span-12 lg:col-span-8 space-y-8">
+                <section class="glass-panel rounded-xl p-8 shadow-2xl">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="material-symbols-outlined text-primary">auto_awesome</span>
+                        <h2 class="text-2xl font-bold font-['Noto_Serif']">Mô tả câu chuyện</h2>
+                    </div>
+                    <textarea name="description" id="description" class="w-full bg-black/20 border-b border-white/10 focus:border-primary focus:ring-0 text-lg min-h-[240px] p-4 rounded-lg transition-all placeholder:text-slate-600 outline-none" placeholder="Hãy bắt đầu bằng 'Trong một thế giới nơi...' hoặc 'Chuyện kể về một hiệp sĩ lạc lối...'"></textarea>
+                </section>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <section class="glass-panel rounded-xl p-8 shadow-2xl">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="material-symbols-outlined text-primary">person</span>
+                            <h3 class="text-xl font-bold font-['Noto_Serif']">Tên nhân vật chính</h3>
+                        </div>
+                        <input name="protagonist_name" id="protagonist_name" class="w-full bg-black/20 border-b border-white/10 focus:border-primary focus:ring-0 p-4 rounded-lg transition-all outline-none" placeholder="Vd: Kaelen Thorne" type="text"/>
+                    </section>
+                    <section class="glass-panel rounded-xl p-8 shadow-2xl">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="material-symbols-outlined text-primary">psychology</span>
+                            <h3 class="text-xl font-bold font-['Noto_Serif']">Mô tả nhân vật</h3>
+                        </div>
+                        <input name="protagonist_description" id="protagonist_description" class="w-full bg-black/20 border-b border-white/10 focus:border-primary focus:ring-0 p-4 rounded-lg transition-all outline-none" placeholder="Kiêu hãnh, thông minh, mang vết sẹo ở mắt..." type="text"/>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Right Column: Parameters -->
+            <div class="col-span-12 lg:col-span-4 space-y-8">
+                <section class="glass-panel rounded-xl p-8 shadow-2xl">
+                    <h3 class="text-xl font-bold mb-6 text-primary font-['Noto_Serif']">Cấu hình hành trình</h3>
+                    
+                    <div class="mb-8">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-xs uppercase text-slate-400">Độ dài (số chương)</span>
+                            <span id="chapter-val" class="text-xs text-primary font-bold">8</span>
+                        </div>
+                        <input name="target_chapters" id="target_chapters" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary" max="20" min="4" type="range" value="8" oninput="document.getElementById('chapter-val').innerText = this.value"/>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs uppercase text-slate-400 mb-2">Thể loại</label>
+                            <select name="genre" id="genre" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 font-medium text-white focus:border-primary outline-none cursor-pointer">
+                                <option value="dark_fantasy">Sử thi kỳ ảo (Epic Fantasy)</option>
+                                <option value="sci_fi">Khoa học viễn tưởng (Sci-Fi)</option>
+                                <option value="thriller">Giật gân (Thriller)</option>
+                                <option value="romance">Lãng mạn (Romance)</option>
+                                <option value="adventure">Phiêu lưu (Adventure)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase text-slate-400 mb-2">Phong cách ảnh</label>
+                            <select name="art_style" id="art_style" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 font-medium text-white focus:border-primary outline-none cursor-pointer">
+                                <option value="anime">Anime / Manga</option>
+                                <option value="cyberpunk">Cyberpunk Neon</option>
+                                <option value="dark_art">Dark Art / Gothic</option>
+                                <option value="realistic_anime">Semi-Realistic Anime</option>
+                                <option value="ghibli_style">Ghibli Inspired</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="bg-primary/10 backdrop-blur-xl border border-primary/30 rounded-xl p-8 shadow-[0_0_30px_rgba(192,132,252,0.1)]">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4 border border-primary/50">
+                            <span class="material-symbols-outlined text-primary text-3xl">auto_fix_high</span>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">Sẵn sàng dệt mộng?</h4>
+                        <p class="text-sm text-slate-400 mb-8">AI đã sẵn sàng xử lý các thông số của bạn để tạo ra một thế giới duy nhất.</p>
+                        <button type="submit" id="btn-start" class="w-full py-4 shimmer-button rounded-lg text-lg flex items-center justify-center gap-2 group">
+                            BẮT ĐẦU HÀNH TRÌNH
+                            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">rocket_launch</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </form>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex flex-col items-center justify-center hidden">
+            <div class="relative w-32 h-32 mb-8">
+                <div class="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-5xl text-primary animate-pulse">auto_awesome</span>
+            </div>
+            <h2 class="text-2xl font-bold cosmic-gradient-text animate-pulse">Đang kiến tạo vũ trụ...</h2>
+            <p id="loading-status" class="mt-4 text-outline">Vui lòng đợi trong giây lát</p>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/auth';
+
+        async function fetchUser() {
+            try {
+                const response = await fetch('/api/users/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const user = await response.json();
+                document.getElementById('user-display').innerText = user.username;
+            } catch (error) {}
+        }
+
+        document.getElementById('setup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-start');
+            const overlay = document.getElementById('loading-overlay');
+            const status = document.getElementById('loading-status');
+            
+            const formData = new FormData(e.target);
+            const jsonData = Object.fromEntries(formData.entries());
+            jsonData.target_chapters = parseInt(jsonData.target_chapters);
+
+            overlay.classList.remove('hidden');
+            status.innerText = "Đang dệt nên chương đầu tiên...";
+
+            try {
+                const response = await fetch('/api/stories/start', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(jsonData)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    status.innerText = "Khởi tạo thành công! Đang chuyển hướng...";
+                    setTimeout(() => window.location.href = `/story/${data.story_id}`, 1000);
+                } else {
+                    overlay.classList.add('hidden');
+                    alert('Lỗi: ' + (data.detail || 'Không thể bắt đầu câu chuyện'));
+                }
+            } catch (error) {
+                overlay.classList.add('hidden');
+                alert('Lỗi kết nối máy chủ.');
+            }
+        });
+
+        fetchUser();
+    </script>
+</body>
+</html>

@@ -6,9 +6,12 @@ pydantic
 pydantic-settings
 python-dotenv
 pyyaml
+jinja2
+aiofiles
 
 # AI & LLM
-google-generativeai
+google-genai
+openai
 huggingface_hub
 Pillow
 
@@ -23,3 +26,13 @@ redis
 fpdf2
 fonttools
 requests
+
+# Authentication
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+
+# Testing
+pytest
+pytest-asyncio
+httpx

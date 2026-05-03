@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="dark" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>GenStory — Thư Viện Của Tôi</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            background-color: #161219;
+            color: #e9e0ea;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        .nebula-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body class="bg-surface-dim">
+    <!-- Nebula Background -->
+    <div class="nebula-bg bg-[#161219]"></div>
+
+    <!-- TopNavBar -->
+    <header class="fixed top-0 w-full border-b border-white/10 bg-black/40 backdrop-blur-xl shadow-[0_0_20px_rgba(192,132,252,0.1)] flex justify-between items-center px-10 lg:px-20 h-16 z-50">
+        <div class="flex items-center gap-8">
+            <span class="text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-300 cursor-pointer" onclick="window.location.href='/dashboard'">GenStory</span>
+            <nav class="hidden md:flex gap-8 font-['Noto_Serif'] tracking-wide uppercase text-sm">
+                <a class="text-slate-400 hover:text-white transition-all active:scale-95" href="/story/new">CHƠI TRUYỆN</a>
+                <a class="text-purple-400 border-b-2 border-purple-500 pb-1 active:scale-95" href="/dashboard">TRUYỆN CỦA TÔI</a>
+                <a class="text-slate-400 hover:text-white transition-all active:scale-95" href="#">TÀI KHOẢN</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-6">
+            <button class="material-symbols-outlined text-slate-400 hover:text-purple-400 transition-colors">notifications</button>
+            <button class="material-symbols-outlined text-slate-400 hover:text-purple-400 transition-colors">settings</button>
+            <div class="w-8 h-8 rounded-full border border-purple-500/30 flex items-center justify-center bg-white/5">
+                <span class="material-symbols-outlined text-purple-400">person</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- SideNavBar Shell -->
+    <aside class="fixed left-0 top-0 h-full w-64 border-r border-white/10 bg-black/30 backdrop-blur-md flex flex-col py-8 z-40">
+        <div class="px-6 mb-12 mt-16">
+            <div class="text-xl font-bold text-purple-400 font-['Noto_Serif']">GenStory</div>
+            <div class="text-xs text-slate-500">Vũ trụ truyện tranh AI</div>
+        </div>
+        <nav class="flex-1 px-4 space-y-2">
+            <div onclick="window.location.href='/dashboard'" class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-transform cursor-pointer rounded-lg">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                <span class="font-['Noto_Serif'] text-base">Khám Phá</span>
+            </div>
+            <div onclick="window.location.href='/dashboard'" class="flex items-center gap-4 px-4 py-3 bg-purple-500/20 text-purple-300 border-l-4 border-purple-500 hover:translate-x-1 transition-transform cursor-pointer rounded-r-lg">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+                <span class="font-['Noto_Serif'] text-base">Thư Viện</span>
+            </div>
+            <div onclick="window.location.href='/story/new'" class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-transform cursor-pointer rounded-lg">
+                <span class="material-symbols-outlined">edit_note</span>
+                <span class="font-['Noto_Serif'] text-base">Sáng Tạo</span>
+            </div>
+            <div class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:bg-white/5 hover:translate-x-1 transition-transform cursor-pointer rounded-lg">
+                <span class="material-symbols-outlined">local_mall</span>
+                <span class="font-['Noto_Serif'] text-base">Cửa Hàng</span>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content Canvas -->
+    <main class="ml-64 pt-24 pb-12 px-10 lg:px-20 min-h-screen">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+                <div>
+                    <h1 class="text-6xl font-bold text-on-surface mb-2 font-['Noto_Serif']">Thư Viện Của Tôi</h1>
+                    <p class="text-lg text-outline max-w-2xl">Quản lý và tiếp tục các cuộc phiêu lưu trong vũ trụ truyện tranh của bạn.</p>
+                </div>
+                <button id="btn-refresh" class="flex items-center gap-2 bg-primary-container text-on-primary-fixed px-6 py-3 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(192,132,252,0.4)] transition-all active:scale-95">
+                    <span class="material-symbols-outlined">refresh</span>
+                    <span>Làm mới</span>
+                </button>
+            </div>
+
+            <!-- Filter & Search Grid -->
+            <div class="grid grid-cols-12 gap-6 mb-8">
+                <div class="col-span-12 md:col-span-8 glass-panel bg-white/5 p-4 rounded-2xl flex items-center gap-4">
+                    <span class="material-symbols-outlined text-outline">search</span>
+                    <input id="search-input" class="bg-transparent border-none focus:ring-0 text-on-surface w-full font-body-md" placeholder="Tìm kiếm tựa truyện, thể loại..." type="text"/>
+                </div>
+                <div class="col-span-12 md:col-span-4 glass-panel bg-white/5 p-4 rounded-2xl flex items-center justify-between px-6">
+                    <span class="text-xs uppercase tracking-widest text-outline">Sắp xếp theo</span>
+                    <div class="flex items-center gap-2 text-primary">
+                        <span class="font-bold">Mới nhất</span>
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="glass-panel bg-black/20 rounded-3xl overflow-hidden shadow-2xl">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/5 bg-white/5">
+                            <th class="py-6 px-8 text-xs uppercase tracking-widest text-outline">ID</th>
+                            <th class="py-6 px-8 text-xs uppercase tracking-widest text-outline">Tiêu đề</th>
+                            <th class="py-6 px-8 text-xs uppercase tracking-widest text-outline">Thể loại</th>
+                            <th class="py-6 px-8 text-xs uppercase tracking-widest text-outline">Ngày tạo</th>
+                            <th class="py-6 px-8 text-xs uppercase tracking-widest text-outline text-right">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="story-table-body" class="divide-y divide-white/5">
+                        <!-- Loading Row -->
+                        <tr>
+                            <td colspan="5" class="py-20 text-center text-outline">Đang kết nối với vũ trụ...</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="p-6 border-t border-white/5 bg-white/5 flex items-center justify-between">
+                    <span id="story-count" class="text-xs text-outline">Hiển thị 0 câu chuyện</span>
+                    <div class="flex gap-2">
+                        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 text-outline hover:border-primary hover:text-primary transition-all">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <button class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary-container text-on-primary-fixed font-bold">1</button>
+                        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-white/10 text-outline hover:border-primary hover:text-primary transition-all">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/auth';
+
+        let allStories = [];
+
+        async function fetchStories() {
+            try {
+                const response = await fetch('/api/stories', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.status === 401) window.location.href = '/auth';
+                
+                allStories = await response.json();
+                renderStories(allStories);
+            } catch (error) {
+                console.error('Lỗi fetch stories:', error);
+            }
+        }
+
+        function renderStories(stories) {
+            const body = document.getElementById('story-table-body');
+            document.getElementById('story-count').innerText = `Hiển thị ${stories.length} câu chuyện`;
+            
+            if (stories.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="py-20 text-center text-outline">Bạn chưa có câu chuyện nào. <a href="/story/new" class="text-primary hover:underline">Tạo ngay?</a></td></tr>';
+                return;
+            }
+
+            body.innerHTML = stories.map(story => `
+                <tr class="group hover:bg-white/5 transition-colors cursor-pointer" onclick="window.location.href='/story/${story.id}'">
+                    <td class="py-6 px-8 text-outline font-mono text-sm">#${story.id.substring(0, 8)}</td>
+                    <td class="py-6 px-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-highest border border-white/10 group-hover:border-purple-500/50 transition-colors">
+                                <img src="${story.thumbnail ? '/' + story.thumbnail : '/static/placeholder.png'}" onerror="this.src='https://via.placeholder.com/100x100/161219/ddb8ff?text=Story'" class="w-full h-full object-cover">
+                            </div>
+                            <span class="font-bold text-lg group-hover:text-primary transition-colors font-['Noto_Serif']">${story.title}</span>
+                        </div>
+                    </td>
+                    <td class="py-6 px-8">
+                        <span class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 text-xs font-medium uppercase tracking-tighter">${story.genre}</span>
+                    </td>
+                    <td class="py-6 px-8 text-outline text-sm">${new Date(story.created_at).toLocaleDateString('vi-VN')}</td>
+                    <td class="py-6 px-8 text-right">
+                        <button class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">more_horiz</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('btn-refresh').addEventListener('click', fetchStories);
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = allStories.filter(s => 
+                s.title.toLowerCase().includes(val) || 
+                s.genre.toLowerCase().includes(val) ||
+                s.id.toLowerCase().includes(val)
+            );
+            renderStories(filtered);
+        });
+
+        async function fetchUser() {
+            try {
+                const response = await fetch('/api/users/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const user = await response.json();
+                // Optionally update avatar if you have the field
+            } catch (error) {}
+        }
+
+        fetchUser();
+        fetchStories();
+    </script>
+</body>
+</html>

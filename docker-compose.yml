@@ -1,20 +1,23 @@
 version: '3.8'
 
 services:
-  app:
+  backend:
     build: .
-    container_name: genstory_app
+    container_name: genstory_backend
     ports:
       - "8000:8000"
-      - "7860:7860"
     env_file:
       - .env
     volumes:
       - .:/app
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://genstory:password@db:5432/genstory_db
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - db
       - redis
-    command: python -m src.ui.app
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+
 
   db:
     image: postgres:15-alpine
@@ -33,7 +36,7 @@ services:
     image: adminer:latest
     container_name: genstory_adminer
     ports:
-      - "8080:8080"
+      - "8081:8080"
     depends_on:
       - db
 
@@ -43,6 +46,21 @@ services:
     container_name: genstory_redis
     ports:
       - "6379:6379"
+
+  test:
+    build: .
+    container_name: genstory_test
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://genstory:password@db:5432/genstory_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    command: pytest src/tests
 
 volumes:
   postgres_data:

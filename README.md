@@ -1,37 +1,56 @@
-# GenStory FastAPI — Hệ thống Visual Novel AI
+# GenStory - AI-Powered Visual Novel Engine
 
-GenStory là một nền tảng tạo câu chuyện tương tác và visual novel sử dụng trí tuệ nhân tạo (Gemini). Hệ thống cho phép người dùng nhập mô tả thế giới, nhân vật và phong cách vẽ để AI tự động sinh cốt truyện, lời thoại và tranh minh họa manga.
+![GenStory Hero](docs/images/auth_preview.png)
 
-##  Tính năng chính
-- **Sinh truyện thông minh:** Sử dụng Google Gemini để tạo nội dung phong phú và nhất quán.
-- **Minh họa Manga/Anime:** Tự động tạo prompt và gọi API để vẽ tranh cho từng chương.
-- **Lựa chọn tương tác:** Người dùng quyết định hành động tiếp theo, AI sinh tiếp chương mới dựa trên lựa chọn đó.
-- **Xuất bản PDF:** Xuất toàn bộ hành trình câu chuyện (chữ + ảnh) ra file PDF chất lượng cao, hỗ trợ tiếng Việt Unicode.
-- **Giao diện "Nebula":** Giao diện vũ trụ hiện đại, tối giản và lôi cuốn người đọc.
+GenStory is an immersive, interactive storytelling platform powered by AI. It allows users to weave unique narratives with vivid manga-style illustrations and expressive voiceovers, turning simple ideas into fully realized visual novels.
 
-##  Công nghệ sử dụng
-- **Ngôn ngữ:** Python 3.11+
-- **Backend:** FastAPI (Hỗ trợ bất đồng bộ, hiệu năng cao)
-- **Frontend:** Gradio (Giao diện người dùng thời thực)
-- **Database:** PostgreSQL (Lưu trữ session, chương truyện và world bible)
-- **Cache/Queue:** Redis (Quản lý trạng thái và hàng đợi)
-- **Containerization:** Docker & Docker Compose
+## 📸 Application Showcase
 
-##  Cấu trúc thư mục
-- `/src/models`: Chứa logic cốt lõi, schemas dữ liệu và engine sinh truyện.
-- `/src/ui`: Mã nguồn cho giao diện Gradio.
-- `/src/backend`: Cấu hình máy chủ API và cơ sở dữ liệu.
-- `/static`: Chứa ảnh đã sinh, fonts và các file xuất bản PDF.
+### 1. Immersive Authentication
+A premium, cinematic entry point that sets the stage for your cosmic journey.
+![Auth Page](docs/images/auth_preview.png)
 
-##  Hướng dẫn khởi động
-Yêu cầu: Đã cài đặt Docker và Docker Compose.
+### 2. Personal Story Library (Dashboard)
+Manage and continue your various adventures across the multiverse.
+![Dashboard](docs/images/dashboard_preview.png)
 
-```bash
-# Khởi động toàn bộ hệ thống
-docker-compose up --build -d
+### 3. Story Creation & Setup
+Define your world, genre, and protagonist. Let the AI tailor a unique universe based on your description.
+![Story Setup](docs/images/create_preview.png)
 
-# Xem log ứng dụng
-docker logs genstory_app -f
-```
+### 4. Interactive Reading Experience
+Read your story with AI-generated manga panels, immersive voiceovers, and make critical choices that branch the narrative in real-time.
+![Reader Page](docs/images/reader_preview_1.png)
+![Reader Page](docs/images/reader_preview_2.png)
 
-Ứng dụng sẽ chạy tại: `http://localhost:7860`
+## ✨ Key Features
+- **Intelligent Narrative Generation:** Powered by Google Gemini to create consistent, high-quality story arcs.
+- **AI Manga Illustration:** Automatically generates prompts and calls image generation APIs to visualize every chapter.
+- **Interactive Branching:** Your choices matter. The AI dynamically generates the next chapter based on your decisions.
+- **Text-to-Speech (TTS):** Immersive voice acting powered by FPT.AI to bring characters to life.
+- **PDF Export:** Export your complete adventure (text + images) into a high-quality PDF for offline reading.
+
+## 🛠 Tech Stack
+- **Backend:** FastAPI (Python 3.10+)
+- **Database:** PostgreSQL with SQLAlchemy (Async)
+- **AI Engines:** Google Gemini (LLM), HuggingFace (Image Generation), FPT.AI (TTS)
+- **Frontend:** Modern HTML5, Tailwind CSS (JIT), Jinja2 Templates
+- **Deployment:** Docker & Docker Compose
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Docker & Docker Compose
+- API Keys: `GOOGLE_API_KEY`, `FPT_API_KEY`, `HF_TOKEN`
+
+### Installation
+1. Clone the repository.
+2. Create a `.env` file in the root directory and fill in your API keys.
+3. Launch the application using Docker:
+   ```bash
+   docker-compose up --build
+   ```
+4. Open your browser and navigate to `http://localhost:8000`.
+
+---
+*Created by GenStory Team. Powered by Cosmic AI.*

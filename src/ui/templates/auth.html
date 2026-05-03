@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html class="dark" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>GenStory — Khám Phá Vũ Trụ Truyện Tranh AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600;700;800&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        :root {
+            --primary: #d8b4fe;
+            --on-primary: #4c1d95;
+            --surface: #030308;
+            --surface-dim: #0f0a1a;
+        }
+        body {
+            background-color: var(--surface);
+            color: #e9e0ea;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+        h1 {
+            font-family: 'Unbounded', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+        }
+        h2, h3 {
+            font-family: 'Syne', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 10, 26, 0.75);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(192, 132, 252, 0.2);
+            box-shadow: 0 25px 60px -12px rgba(139, 92, 246, 0.3);
+        }
+        .shimmer-button {
+            background: linear-gradient(90deg, #c084fc, #ddb8ff, #c084fc);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite linear;
+            transition: all 0.3s ease;
+        }
+        .shimmer-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
+        }
+        @keyframes shimmer {
+            0% { background-position: -100% 0; }
+            100% { background-position: 100% 0; }
+        }
+        .active-tab {
+            color: var(--primary) !important;
+            border-bottom: 2px solid var(--primary) !important;
+        }
+        .hero-overlay {
+            background: linear-gradient(to right, rgba(3, 3, 8, 1) 0%, rgba(3, 3, 8, 0.8) 20%, rgba(3, 3, 8, 0.4) 60%, rgba(3, 3, 8, 0.6) 100%);
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-surface">
+    <main class="relative h-screen w-full overflow-hidden">
+        <!-- Background Image (Full Width) -->
+        <div class="absolute inset-0 z-0">
+            <img src="/static/hero_wide.png" onerror="this.src='https://images.unsplash.com/photo-1578632738980-420ca48e9c21?q=80&w=2070&auto=format&fit=crop'" alt="Background" class="w-full h-full object-cover"/>
+            <div class="absolute inset-0 hero-overlay"></div>
+        </div>
+
+        <!-- Content Layer -->
+        <div class="relative z-10 flex h-full w-full justify-between items-center px-10 lg:px-24">
+            <!-- Left Side: Hero Text -->
+            <section class="flex flex-1 flex-col justify-center pr-10">
+                <div class="animate-float">
+                    <span class="text-primary text-[10px] font-black tracking-[0.5em] uppercase mb-4 block opacity-80">AI-Powered Visual Novels</span>
+                    <h1 class="text-4xl md:text-5xl lg:text-7xl font-black text-white leading-[1.1] drop-shadow-2xl">
+                        DỆT NÊN <br/> 
+                        CÂU CHUYỆN <br/>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-300">CỦA RIÊNG BẠN</span>
+                    </h1>
+                    <p class="mt-8 text-lg text-slate-300 max-w-lg leading-relaxed font-light opacity-80">
+                        Hóa thân vào những thế giới kỳ ảo, nơi mỗi quyết định của bạn sẽ tạo ra những trang truyện tranh độc bản bởi trí tuệ nhân tạo.
+                    </p>
+                </div>
+                
+                <div class="mt-20 flex items-center gap-12">
+                    <div class="flex flex-col">
+                        <span class="text-3xl font-bold text-white">1M+</span>
+                        <span class="text-[10px] text-primary uppercase tracking-widest font-bold">Chương đã tạo</span>
+                    </div>
+                    <div class="w-[1px] h-12 bg-white/10"></div>
+                    <div class="flex flex-col">
+                        <span class="text-3xl font-bold text-white">50K+</span>
+                        <span class="text-[10px] text-primary uppercase tracking-widest font-bold">Người kể chuyện</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Auth Form (Overlaying the background) -->
+            <section class="w-full md:w-[450px] lg:w-[500px] flex items-center justify-center md:justify-end py-6">
+                <div class="w-full max-w-md relative">
+                    <!-- Mobile Branding -->
+                    <div class="md:hidden mb-10 text-center">
+                        <h2 class="text-4xl font-black italic text-primary tracking-tighter">GENSTORY</h2>
+                        <p class="text-[10px] text-outline tracking-[0.5em] uppercase mt-2">Vũ trụ truyện tranh AI</p>
+                    </div>
+
+                    <div class="glass-panel p-8 rounded-[32px] transition-all duration-500 hover:shadow-[0_0_80px_rgba(139,92,246,0.2)]">
+                        <div class="mb-8">
+                            <h2 class="text-2xl font-bold text-white mb-2">Chào mừng bạn!</h2>
+                            <p class="text-sm text-outline">Đăng nhập để tiếp tục hành trình của bạn.</p>
+                        </div>
+
+                        <!-- Tabs -->
+                        <div class="flex border-b border-white/5 mb-8">
+                            <button id="tab-login" class="flex-1 pb-4 font-bold tracking-wider active-tab transition-all text-[11px] uppercase">Đăng nhập</button>
+                            <button id="tab-register" class="flex-1 pb-4 font-bold tracking-wider text-outline hover:text-white transition-all text-[11px] uppercase">Đăng ký</button>
+                        </div>
+
+                        <!-- Login Form -->
+                        <div id="login-section">
+                            <form id="login-form" class="space-y-5">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] text-outline uppercase tracking-[0.2em] font-bold block ml-1">Tên truy cập</label>
+                                    <div class="relative">
+                                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg">person</span>
+                                        <input name="username" class="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/50 transition-all text-sm" placeholder="Username" type="text" required/>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] text-outline uppercase tracking-[0.2em] font-bold block ml-1">Mật mã</label>
+                                    <div class="relative">
+                                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg">lock</span>
+                                        <input name="password" class="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/50 transition-all text-sm" placeholder="••••••••" type="password" required/>
+                                    </div>
+                                </div>
+                                <button class="w-full shimmer-button py-4 rounded-2xl text-[11px] tracking-[0.3em] text-black font-black uppercase shadow-2xl active:scale-[0.98] transition-all mt-4" type="submit">
+                                    KHÁM PHÁ NGAY
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Register Form -->
+                        <div id="register-section" class="hidden">
+                            <form id="register-form" class="space-y-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] text-outline uppercase tracking-[0.2em] font-bold block ml-1">Tên người dùng</label>
+                                    <div class="relative">
+                                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg">person</span>
+                                        <input name="username" class="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/50 transition-all text-sm" placeholder="Hào" type="text" required/>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] text-outline uppercase tracking-[0.2em] font-bold block ml-1">Địa chỉ Email</label>
+                                    <div class="relative">
+                                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg">mail</span>
+                                        <input name="email" class="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/50 transition-all text-sm" placeholder="user@gmail.com" type="email" required/>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] text-outline uppercase tracking-[0.2em] font-bold block ml-1">Mật khẩu mới</label>
+                                    <div class="relative">
+                                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-lg">lock</span>
+                                        <input name="password" class="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/50 transition-all text-sm" placeholder="••••••••" type="password" required/>
+                                    </div>
+                                </div>
+                                <button class="w-full shimmer-button py-4 rounded-2xl text-[11px] tracking-[0.3em] text-black font-black uppercase shadow-2xl active:scale-[0.98] transition-all mt-4" type="submit">
+                                    ĐĂNG KÝ TÀI KHOẢN
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Status Message -->
+                        <div id="status-msg" class="mt-6 text-center text-[10px] font-bold tracking-tight min-h-[15px] uppercase"></div>
+
+                        <!-- Social Login -->
+                        <div class="mt-8 pt-8 border-t border-white/5">
+                            <p class="text-center text-[8px] uppercase tracking-[0.3em] font-bold text-outline mb-6">Hoặc tiếp tục với</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button class="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all text-[10px] font-bold uppercase tracking-wider">
+                                    <span class="material-symbols-outlined text-base">account_circle</span> Google
+                                </button>
+                                <button class="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all text-[10px] font-bold uppercase tracking-wider">
+                                    <span class="material-symbols-outlined text-base">apple</span> Apple
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const loginSection = document.getElementById('login-section');
+        const registerSection = document.getElementById('register-section');
+        const statusMsg = document.getElementById('status-msg');
+
+        tabLogin.addEventListener('click', () => {
+            tabLogin.classList.add('active-tab');
+            tabLogin.classList.remove('text-outline');
+            tabRegister.classList.remove('active-tab');
+            tabRegister.classList.add('text-outline');
+            loginSection.classList.remove('hidden');
+            registerSection.classList.add('hidden');
+            statusMsg.innerText = '';
+        });
+
+        tabRegister.addEventListener('click', () => {
+            tabRegister.classList.add('active-tab');
+            tabRegister.classList.remove('text-outline');
+            tabLogin.classList.remove('active-tab');
+            tabLogin.classList.add('text-outline');
+            registerSection.classList.remove('hidden');
+            loginSection.classList.add('hidden');
+            statusMsg.innerText = '';
+        });
+
+        // Handle Login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            statusMsg.innerText = 'Đang đăng nhập...';
+            statusMsg.className = 'mt-6 text-center text-[10px] font-bold tracking-tight text-primary uppercase';
+            
+            const formData = new FormData(e.target);
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    statusMsg.innerText = 'Thành công! Đang chuyển hướng...';
+                    statusMsg.classList.replace('text-primary', 'text-green-400');
+                    setTimeout(() => window.location.href = '/dashboard', 1000);
+                } else {
+                    statusMsg.innerText = 'Lỗi: ' + (data.detail || 'Đăng nhập thất bại');
+                    statusMsg.classList.replace('text-primary', 'text-red-400');
+                }
+            } catch (error) {
+                statusMsg.innerText = 'Lỗi kết nối máy chủ.';
+                statusMsg.classList.replace('text-primary', 'text-red-400');
+            }
+        });
+
+        // Handle Register
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            statusMsg.innerText = 'Đang tạo tài khoản...';
+            statusMsg.className = 'mt-6 text-center text-[10px] font-bold tracking-tight text-primary uppercase';
+            
+            const formData = new FormData(e.target);
+            const jsonData = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jsonData)
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    statusMsg.innerText = 'Đăng ký thành công! Hãy đăng nhập.';
+                    statusMsg.classList.replace('text-primary', 'text-green-400');
+                    setTimeout(() => tabLogin.click(), 1500);
+                } else {
+                    statusMsg.innerText = 'Lỗi: ' + (data.detail || 'Đăng ký thất bại');
+                    statusMsg.classList.replace('text-primary', 'text-red-400');
+                }
+            } catch (error) {
+                statusMsg.innerText = 'Lỗi kết nối máy chủ.';
+                statusMsg.classList.replace('text-primary', 'text-red-400');
+            }
+        });
+    </script>
+</body>
+</html>

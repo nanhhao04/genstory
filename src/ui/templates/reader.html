@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html class="dark" lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>GenStory — Đọc Truyện</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            background: rgba(22, 18, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .text-glow {
+            text-shadow: 0 0 15px rgba(192, 132, 252, 0.4);
+        }
+        .inner-rim {
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+        .choice-btn:checked + div {
+            border-color: #ddb8ff !important;
+            box-shadow: 0 0 30px rgba(192, 132, 252, 0.3) !important;
+        }
+        .choice-btn:checked + div .icon-box {
+            background-color: #ddb8ff !important;
+        }
+        .choice-btn:checked + div .icon-box span {
+            color: #2c0051 !important;
+        }
+    </style>
+</head>
+<body class="bg-surface-dim text-on-surface">
+    <div class="nebula-bg"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="fixed top-0 w-full border-b border-white/10 bg-black/40 backdrop-blur-xl shadow-[0_0_20px_rgba(192,132,252,0.1)] flex justify-between items-center px-10 lg:px-20 h-16 z-50">
+        <div class="text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-300 cursor-pointer" onclick="window.location.href='/dashboard'">GenStory</div>
+        <nav class="hidden md:flex items-center gap-8 font-['Noto_Serif'] tracking-wide uppercase text-sm">
+            <a class="text-purple-400 border-b-2 border-purple-500 pb-1" href="/story/new">CHƠI TRUYỆN</a>
+            <a class="text-slate-400 hover:text-white transition-colors" href="/dashboard">TRUYỆN CỦA TÔI</a>
+            <a class="text-slate-400 hover:text-white transition-colors" href="#">TÀI KHOẢN</a>
+        </nav>
+        <div class="flex items-center gap-4">
+            <span id="user-display" class="text-xs font-bold text-primary">User</span>
+            <div class="w-8 h-8 rounded-full border border-purple-500/30 flex items-center justify-center bg-white/5">
+                <span class="material-symbols-outlined text-purple-400">person</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-24 pb-20 max-w-7xl mx-auto px-8 lg:px-20 grid grid-cols-12 gap-8">
+        <!-- Left Utility Sidebar -->
+        <aside class="col-span-12 lg:col-span-3 flex flex-col gap-8">
+            <div class="glass-panel rounded-xl p-6 inner-rim">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-2 h-8 bg-primary rounded-full"></div>
+                    <h3 class="text-lg font-bold text-primary font-['Noto_Serif']">TÙY CHỌN ĐỌC</h3>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <button id="btn-tts" class="group flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-primary/30 transition-all active:scale-95">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary">volume_up</span>
+                            <span class="text-sm font-medium">ĐỌC CHƯƠNG NÀY</span>
+                        </div>
+                    </button>
+                    <button id="btn-pdf" class="group flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-primary/30 transition-all active:scale-95">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary">download</span>
+                            <span class="text-sm font-medium">TẢI PDF TRUYỆN</span>
+                        </div>
+                    </button>
+                </div>
+                <audio id="tts-audio" class="hidden" controls></audio>
+            </div>
+
+            <div class="glass-panel rounded-xl p-6 inner-rim">
+                <h4 class="text-sm font-bold text-outline mb-4 font-['Noto_Serif'] uppercase tracking-widest">THÔNG TIN TRUYỆN</h4>
+                <div id="story-meta" class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400">Thể loại</span>
+                        <span id="meta-genre" class="text-xs text-primary font-bold">---</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400">Chương hiện tại</span>
+                        <span id="meta-chapter" class="text-xs text-primary font-bold">0 / --</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Column -->
+        <div class="col-span-12 lg:col-span-9 flex flex-col gap-12">
+            <!-- Content Section -->
+            <section class="glass-panel rounded-2xl overflow-hidden inner-rim shadow-2xl">
+                <div class="relative w-full bg-black/40 border-b border-white/5">
+                    <img id="chapter-image" alt="AI Illustration" class="w-full h-auto block mx-auto transition-opacity duration-1000" src=""/>
+                </div>
+                <div class="px-12 py-6 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                    <div>
+                        <span id="chapter-label" class="inline-block px-3 py-0.5 rounded-full bg-primary/20 border border-primary/50 text-primary text-[9px] font-bold uppercase mb-2">Đang tải...</span>
+                        <h1 id="chapter-title" class="text-xl lg:text-2xl font-bold text-white text-glow font-['Noto_Serif']">---</h1>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="btn-prev" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all" title="Chương trước">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <button id="btn-next-nav" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all" title="Chương sau">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="px-12 py-10 min-h-[300px]">
+                    <div id="narrative-text" class="text-lg text-on-surface leading-relaxed max-w-4xl space-y-6 font-['Noto_Serif']">
+                        <!-- Content will be injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Choices -->
+            <section id="choice-section" class="flex flex-col gap-8 items-center pb-20 hidden">
+                <h2 class="text-2xl font-bold text-white text-center font-['Noto_Serif'] tracking-widest">BẠN SẼ QUYẾT ĐỊNH THẾ NÀO?</h2>
+                <div id="choices-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
+                    <!-- Choices injected here -->
+                </div>
+                <button id="btn-confirm" class="shimmer-button px-12 py-4 rounded-full text-lg shadow-[0_0_30px_rgba(192,132,252,0.3)]">
+                    XÁC NHẬN HÀNH ĐỘNG
+                </button>
+            </section>
+
+            <!-- Loading Indicator for Next Chapter -->
+            <div id="next-loading" class="flex flex-col items-center gap-4 py-12 hidden">
+                <div class="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
+                <p class="text-primary font-bold animate-pulse">AI đang dệt nên vận mệnh tiếp theo...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const storyId = "{{ story_id }}";
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/auth';
+
+        let currentChapter = null;
+        let selectedChoice = null;
+        let allChapters = [];
+        let viewingIndex = -1;
+
+        async function fetchStory() {
+            try {
+                const response = await fetch(`/api/stories/${storyId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.status === 404) {
+                    alert('Truyện không tồn tại');
+                    window.location.href = '/dashboard';
+                    return;
+                }
+                const data = await response.json();
+                
+                document.getElementById('meta-genre').innerText = data.bible.genre;
+                document.getElementById('meta-chapter').innerText = `${data.chapters.length} / ${data.bible.target_chapters}`;
+                
+                allChapters = data.chapters;
+                if (allChapters.length > 0) {
+                    viewingIndex = allChapters.length - 1;
+                    renderChapter(allChapters[viewingIndex]);
+                }
+            } catch (error) {
+                console.error('Lỗi fetch story:', error);
+            }
+        }
+
+        function updateNavButtons() {
+            document.getElementById('btn-prev').disabled = (viewingIndex <= 0);
+            document.getElementById('btn-next-nav').disabled = (viewingIndex >= allChapters.length - 1);
+        }
+
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            if (viewingIndex > 0) {
+                viewingIndex--;
+                renderChapter(allChapters[viewingIndex]);
+            }
+        });
+
+        document.getElementById('btn-next-nav').addEventListener('click', () => {
+            if (viewingIndex < allChapters.length - 1) {
+                viewingIndex++;
+                renderChapter(allChapters[viewingIndex]);
+            }
+        });
+
+        function renderChapter(chapter) {
+            currentChapter = chapter;
+            document.getElementById('chapter-label').innerText = `Chương ${chapter.chapter_number}`;
+            document.getElementById('chapter-title').innerText = chapter.title;
+            document.getElementById('chapter-image').src = chapter.image_path ? `/${chapter.image_path}` : '';
+            
+            // Typewriter effect
+            const container = document.getElementById('narrative-text');
+            container.innerHTML = '';
+            const text = chapter.narrative_text;
+            let i = 0;
+            
+            // Simple split into paragraphs
+            const paragraphs = text.split('\n\n');
+            paragraphs.forEach(p => {
+                const pTag = document.createElement('p');
+                container.appendChild(pTag);
+                // We'll just display them normally for now or a simple version
+                pTag.innerText = p;
+            });
+
+            // Render choices only if viewing the LATEST chapter
+            if (viewingIndex === allChapters.length - 1) {
+                renderChoices(chapter.next_options);
+            } else {
+                document.getElementById('choice-section').classList.add('hidden');
+            }
+            
+            updateNavButtons();
+        }
+
+        function renderChoices(options) {
+            const grid = document.getElementById('choices-grid');
+            const section = document.getElementById('choice-section');
+            
+            if (!options || options.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            grid.innerHTML = options.map((opt, idx) => `
+                <label class="relative group cursor-pointer">
+                    <input type="radio" name="choice" value="${opt.text}" class="choice-btn peer sr-only">
+                    <div class="glass-panel p-6 rounded-xl border-2 border-white/10 group-hover:border-primary/50 transition-all flex flex-col items-center text-center gap-4 h-full">
+                        <div class="icon-box w-12 h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center transition-colors">
+                            <span class="material-symbols-outlined text-primary transition-colors">${idx === 0 ? 'auto_awesome' : 'security'}</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white mb-2 uppercase">${opt.text}</h3>
+                            <p class="text-xs text-slate-400">${opt.hint || ''}</p>
+                        </div>
+                    </div>
+                </label>
+            `).join('');
+            
+            section.classList.remove('hidden');
+        }
+
+        document.getElementById('btn-confirm').addEventListener('click', async () => {
+            const checked = document.querySelector('input[name="choice"]:checked');
+            if (!checked) {
+                alert('Vui lòng chọn một hành động');
+                return;
+            }
+
+            const choiceText = checked.value;
+            const section = document.getElementById('choice-section');
+            const loading = document.getElementById('next-loading');
+
+            section.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/stories/next', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        story_id: storyId,
+                        chosen_option_text: choiceText
+                    })
+                });
+
+                const data = await response.json();
+                loading.classList.add('hidden');
+
+                if (response.ok) {
+                    allChapters.push(data.chapter);
+                    viewingIndex = allChapters.length - 1;
+                    renderChapter(data.chapter);
+                    
+                    // Update chapter meta
+                    const currentMeta = document.getElementById('meta-chapter').innerText;
+                    const parts = currentMeta.split(' / ');
+                    document.getElementById('meta-chapter').innerText = `${allChapters.length} / ${parts[1]}`;
+                } else {
+                    section.classList.remove('hidden');
+                    alert('Lỗi: ' + (data.detail || 'Không thể tạo chương tiếp theo'));
+                }
+            } catch (error) {
+                loading.classList.add('hidden');
+                section.classList.remove('hidden');
+                alert('Lỗi kết nối máy chủ.');
+            }
+        });
+
+        // TTS
+        document.getElementById('btn-tts').addEventListener('click', async () => {
+            if (!currentChapter) return;
+            const btn = document.getElementById('btn-tts');
+            const audio = document.getElementById('tts-audio');
+            
+            btn.classList.add('animate-pulse', 'text-primary');
+            
+            try {
+                const response = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ text: currentChapter.narrative_text })
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    audio.src = URL.createObjectURL(blob);
+                    audio.classList.remove('hidden');
+                    audio.play();
+                } else {
+                    alert('Lỗi TTS');
+                }
+            } catch (error) {
+                alert('Lỗi kết nối TTS');
+            } finally {
+                btn.classList.remove('animate-pulse', 'text-primary');
+            }
+        });
+
+        // PDF Download Fix
+        document.getElementById('btn-pdf').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-pdf');
+            btn.classList.add('animate-pulse');
+            
+            try {
+                const response = await fetch(`/api/stories/${storyId}/pdf`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `GenStory_${storyId}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                } else {
+                    alert('Lỗi khi tạo PDF: ' + response.status);
+                }
+            } catch (error) {
+                alert('Lỗi kết nối tải PDF');
+            } finally {
+                btn.classList.remove('animate-pulse');
+            }
+        });
+
+        async function fetchUser() {
+            try {
+                const response = await fetch('/api/users/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const user = await response.json();
+                document.getElementById('user-display').innerText = user.username;
+            } catch (error) {}
+        }
+
+        fetchUser();
+        fetchStory();
+    </script>
+</body>
+</html>

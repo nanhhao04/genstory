@@ -13,19 +13,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fpdf import FPDF
 
-from src.models.config_llm import llm, hf_client, cfg
-from src.models.prompts import (
+from src.core.llm import llm, hf_client, cfg
+from src.prompts.story_prompts import (
     WORLD_BIBLE_SYSTEM, WORLD_BIBLE_USER,
-    CHAPTER_NARRATIVE_SYSTEM, CHAPTER_NARRATIVE_USER,
-    CHAPTER_METADATA_SYSTEM, CHAPTER_METADATA_USER,
+    CHAPTER_SYSTEM, CHAPTER_USER,
     SUMMARIZE_SYSTEM, SUMMARIZE_USER,
     build_sd_prompt,
 )
-from src.models.schemas import (
+from src.schemas.story import (
     WorldBible, Character, Chapter, MangaPage, MangaPanel,
     NextOption, StorySession,
 )
-from src.models.tables import WorldBibleTable, StoryTable, ChapterTable
+from src.database.models import WorldBibleTable, StoryTable, ChapterTable
 
 HF_MODEL = cfg.get("HF_IMAGE_MODEL", "black-forest-labs/FLUX.1-schnell")
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "outputs")
@@ -73,7 +72,7 @@ async def _call_gemini(system: str, user: str, log_name: str = "general") -> str
         raise
 
 async def _call_gemini_json(system: str, user: str, log_name: str, context: str) -> dict:
-    """Gọi Gemini và bóc tách JSON, có cơ chế tự sửa lỗi nếu JSON hỏng."""
+    """Gọi Gemini và bóc tách JSON"""
     raw = await _call_gemini(system, user, log_name=log_name)
     try:
         return _parse_json_safe(raw, context=context)
@@ -185,28 +184,20 @@ async def generate_chapter(
         s = c.summary or (", ".join(c.key_events) if c.key_events else "")
         summaries.append(f"Chương {c.chapter_number}: {s}")
 
-    print(f"\nĐang sinh chương {next_num} (Phần 1: Narrative)...")
+    print(f"\nĐang sinh chương {next_num} (All-in-One)...")
     try:
-        prompt_narrative = CHAPTER_NARRATIVE_USER.format(
+        user_prompt = CHAPTER_USER.format(
             world_bible_json=json.dumps(bible_json, ensure_ascii=False, indent=2),
-            n_prev=len(prev_chaps),
             chapter_summaries="\n\n".join(summaries),
-            prev_num=prev_chaps[-1].chapter_number if prev_chaps else 0,
             last_chapter_text=last_chapter_text or "(Chưa có — đây là chương 1)",
             chosen_option=chosen_option or "Bắt đầu câu chuyện",
             next_num=next_num,
         )
 
-        narrative_text = await _call_gemini(CHAPTER_NARRATIVE_SYSTEM, prompt_narrative, log_name=f"chapter_{next_num}_narrative")
-        print(f"  [Chapter] Narrative sinh xong ({len(narrative_text)} chars).")
+        data = await _call_gemini_json(CHAPTER_SYSTEM, user_prompt, log_name=f"chapter_{next_num}_all", context=f"chapter_{next_num}")
+        print(f"  [Chapter] AI sinh xong và parse JSON thành công.")
 
-        print(f"Đang sinh chương {next_num} (Phần 2: Metadata)...")
-        # Sử dụng replace thay vì format để tránh lỗi khi narrative_text có dấu ngoặc nhọn {}
-        prompt_metadata = CHAPTER_METADATA_USER.replace("{next_num}", str(next_num)).replace("{narrative_text}", narrative_text)
-        
-        data = await _call_gemini_json(CHAPTER_METADATA_SYSTEM, prompt_metadata, log_name=f"chapter_{next_num}_metadata", context=f"metadata_{next_num}")
-        print(f"  [Chapter] Metadata parse xong, đang khởi tạo đối tượng...")
-
+        narrative_text = data.get("narrative_text", "")
         mp_data = data.get("manga_page", {})
         manga_page = MangaPage(
             layout=mp_data.get("layout", "2x2"),
@@ -241,7 +232,6 @@ async def generate_chapter(
                 for opt in data.get("next_options", [])
             ] if data.get("next_options") else [],
         )
-        print(f"  [Chapter] Khởi tạo Chapter {next_num} thành công.")
         return chapter
     except Exception as e:
         print(f"!!! LỖI TẠI generate_chapter: {e}")
@@ -280,7 +270,8 @@ async def generate_manga_page(chapter: Chapter, bible: WorldBible, save_dir: str
         )
         print(f"  [Manga] Sinh ảnh thành công, đang lưu vào {path}...")
         image.save(path)
-        return path
+        # Return relative path for UI
+        return f"outputs/{filename}"
     except Exception as e:
         print(f"Lỗi sinh ảnh: {e}")
         return None
@@ -306,6 +297,78 @@ class StoryEngine:
         self.db = db
         self.session: Optional[StorySession] = None
 
+    async def load_story(self, story_id: str) -> bool:
+        if not self.db: return False
+        
+        # Load World Bible
+        from src.schemas.story import Character, WorldBible, Chapter, MangaPage, MangaPanel, NextOption, StorySession
+        
+        res = await self.db.execute(select(WorldBibleTable).where(WorldBibleTable.id == story_id))
+        db_bible = res.scalars().first()
+        if not db_bible: return False
+        
+        lore = db_bible.lore or {}
+        side_chars = [
+            Character(**c) for c in lore.get("side_characters", [])
+        ]
+        
+        bible = WorldBible(
+            story_id=db_bible.id,
+            title=db_bible.title,
+            genre=db_bible.genre,
+            art_style=db_bible.art_style,
+            tone=lore.get("tone", "dramatic"),
+            setting=lore.get("setting", ""),
+            protagonist=Character(
+                name=db_bible.protagonist_name,
+                role="protagonist",
+                appearance=db_bible.protagonist_description,
+                sd_anchor=lore.get("protagonist_sd_anchor", "")
+            ),
+            side_characters=side_chars,
+            lore=lore.get("lore", ""),
+            target_chapters=8 # Default if not found
+        )
+        
+        # Load Chapters
+        from src.database.models import ChapterTable
+        res_chap = await self.db.execute(
+            select(ChapterTable).where(ChapterTable.story_id == story_id).order_by(ChapterTable.chapter_number)
+        )
+        db_chaps = res_chap.scalars().all()
+        
+        chapters = []
+        for c in db_chaps:
+            opts = [NextOption(**opt) for opt in (c.options or [])]
+            
+            # Reconstruct MangaPage
+            mp_data = getattr(c, "manga_page_data", None) or {}
+            if mp_data:
+                mp = MangaPage(
+                    layout=mp_data.get("layout", "1x1"),
+                    panels=[MangaPanel(**p) for p in mp_data.get("panels", [])],
+                    dominant_mood=mp_data.get("dominant_mood", "dramatic")
+                )
+            else:
+                mp = MangaPage(layout="1x1", panels=[], dominant_mood="dramatic")
+            
+            chapters.append(Chapter(
+                chapter_number=c.chapter_number,
+                title=c.title,
+                choice_that_led_here=getattr(c, "choice_that_led_here", "") or "",
+                narrative_text=c.narrative_text,
+                manga_page=mp,
+                chapter_ending=getattr(c, "chapter_ending", "") or "",
+                key_events=getattr(c, "key_events", []) or [],
+                state_changes=getattr(c, "state_changes", {}) or {},
+                next_options=opts,
+                image_path=c.image_path,
+                summary=c.summary
+            ))
+            
+        self.session = StorySession(world_bible=bible, chapters=chapters)
+        return True
+
     async def start_story(
             self,
             description: str,
@@ -314,6 +377,7 @@ class StoryEngine:
             protagonist_name: str = "Kael",
             protagonist_description: str = "",
             target_chapters: int = 8,
+            user_id: Optional[str] = None,
             progress_callback: Optional[Callable] = None,
     ) -> Chapter:
         if progress_callback: progress_callback(0.1, desc="🕯️ Đang khởi tạo thế giới...")
@@ -324,17 +388,18 @@ class StoryEngine:
         if progress_callback: progress_callback(0.3, desc="✍️ Đang dệt nên chương đầu tiên...")
         chapter = await generate_chapter(self.session, chosen_option="")
 
-        if progress_callback: progress_callback(0.7, desc="🖌️ Đang vẽ minh họa manga...")
-        chapter.image_path = await generate_manga_page(chapter, bible)
-
-        if progress_callback: progress_callback(0.9, desc="📝 Đang tóm tắt hành trình...")
-        chapter.summary = await summarize_chapter(chapter)
+        if progress_callback: progress_callback(0.6, desc="🎨 Đang vẽ manga và tóm tắt...")
+        # Chạy song song vẽ ảnh và tóm tắt
+        img_task = asyncio.create_task(generate_manga_page(chapter, bible))
+        sum_task = asyncio.create_task(summarize_chapter(chapter))
+        
+        chapter.image_path, chapter.summary = await asyncio.gather(img_task, sum_task)
         
         if self.session and self.session.chapters is not None:
             self.session.chapters.append(chapter)
 
         if self.db:
-            await self._save_to_db(bible, self.session, chapter)
+            await self._save_to_db(bible, self.session, chapter, user_id=user_id)
 
         return chapter
 
@@ -342,14 +407,15 @@ class StoryEngine:
         if not self.session:
             raise RuntimeError("Chưa có story session.")
 
-        if progress_callback: progress_callback(0.2, desc="✍️ Đang viết tiếp câu chuyện...")
+        if progress_callback: progress_callback(0.2, desc=" Đang viết tiếp câu chuyện...")
         chapter = await generate_chapter(self.session, chosen_option=chosen_option_text)
 
-        if progress_callback: progress_callback(0.7, desc="🖌️ Đang vẽ trang manga tiếp tiếp theo...")
-        chapter.image_path = await generate_manga_page(chapter, self.session.world_bible)
-
-        if progress_callback: progress_callback(0.9, desc="📝 Đang cập nhật trạng thái...")
-        chapter.summary = await summarize_chapter(chapter)
+        if progress_callback: progress_callback(0.6, desc=" Đang vẽ manga và tóm tắt...")
+        # Chạy song song vẽ ảnh và tóm tắt
+        img_task = asyncio.create_task(generate_manga_page(chapter, self.session.world_bible))
+        sum_task = asyncio.create_task(summarize_chapter(chapter))
+        
+        chapter.image_path, chapter.summary = await asyncio.gather(img_task, sum_task)
         
         if self.session and self.session.chapters is not None:
             self.session.chapters.append(chapter)
@@ -359,10 +425,11 @@ class StoryEngine:
 
         return chapter
 
-    async def _save_to_db(self, bible: WorldBible, session: StorySession, chapter: Chapter):
+    async def _save_to_db(self, bible: WorldBible, session: StorySession, chapter: Chapter, user_id: Optional[str] = None):
         if not self.db: return
         db_bible = WorldBibleTable(
             id=bible.story_id,
+            user_id=user_id,
             title=bible.title,
             genre=bible.genre,
             art_style=bible.art_style,
@@ -391,6 +458,11 @@ class StoryEngine:
             narrative_text=chapter.narrative_text,
             image_path=chapter.image_path,
             summary=chapter.summary,
+            choice_that_led_here=chapter.choice_that_led_here,
+            chapter_ending=chapter.chapter_ending,
+            key_events=chapter.key_events,
+            state_changes=chapter.state_changes,
+            manga_page_data=asdict(chapter.manga_page) if chapter.manga_page else None,
             options=[asdict(opt) for opt in chapter.next_options]
         )
         self.db.add(db_chapter)
@@ -424,7 +496,7 @@ class StoryEngine:
         effective_w = 210 - 30  # A4 width 210mm - 15mm*2 margins
         
         # Font handling cho tiếng Việt (Sử dụng NotoSans)
-        font_dir = "/app/static/fonts"
+        font_dir = os.path.join(os.path.dirname(__file__), "..", "ui", "static", "fonts")
         os.makedirs(font_dir, exist_ok=True)
         font_path = os.path.join(font_dir, "NotoSans-Regular.ttf")
         
@@ -480,12 +552,15 @@ class StoryEngine:
             pdf.multi_cell(effective_w, 10, f"Chuong {chapter.chapter_number}: {chapter.title}", new_x="LMARGIN", new_y="NEXT")
             pdf.ln(4)
             
-            if chapter.image_path and os.path.exists(chapter.image_path):
-                try:
-                    pdf.image(chapter.image_path, x=15, w=effective_w)
-                    pdf.ln(5)
-                except Exception as e:
-                    logging.warning(f"Loi them anh vao PDF: {e}")
+            if chapter.image_path:
+                # image_path is relative "outputs/filename.png"
+                img_full_path = os.path.join(os.path.dirname(__file__), "..", chapter.image_path)
+                if os.path.exists(img_full_path):
+                    try:
+                        pdf.image(img_full_path, x=15, w=effective_w)
+                        pdf.ln(5)
+                    except Exception as e:
+                        logging.warning(f"Loi them anh vao PDF: {e}")
 
             pdf.set_font(font_family, size=11)
             pdf.multi_cell(effective_w, 7, chapter.narrative_text, new_x="LMARGIN", new_y="NEXT")
@@ -495,7 +570,7 @@ class StoryEngine:
                 pdf.set_font(font_family, size=10)
                 pdf.multi_cell(effective_w, 6, f"Ket chuong: {chapter.chapter_ending}", new_x="LMARGIN", new_y="NEXT")
 
-        export_dir = "/app/static/exports"
+        export_dir = os.path.join(os.path.dirname(__file__), "..", "ui", "static", "exports")
         os.makedirs(export_dir, exist_ok=True)
         file_path = os.path.join(export_dir, f"story_{self.session.world_bible.story_id}.pdf")
         pdf.output(file_path)

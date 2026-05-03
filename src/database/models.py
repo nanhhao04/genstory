@@ -1,12 +1,25 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from src.models.db import Base
+from src.database.session import Base
+
+class UserTable(Base):
+    __tablename__ = "users"
+
+    id = Column(String, primary_key=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    is_active = Column(Integer, default=1)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    world_bibles = relationship("WorldBibleTable", back_populates="user")
 
 class WorldBibleTable(Base):
     __tablename__ = "world_bibles"
 
     id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True) # Temporarily nullable for migration
     title = Column(String)
     genre = Column(String)
     art_style = Column(String)
@@ -15,6 +28,7 @@ class WorldBibleTable(Base):
     lore = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    user = relationship("UserTable", back_populates="world_bibles")
     stories = relationship("StoryTable", back_populates="world_bible")
 
 class StoryTable(Base):
@@ -40,6 +54,11 @@ class ChapterTable(Base):
     narrative_text = Column(Text)
     image_path = Column(String)
     summary = Column(Text)
+    choice_that_led_here = Column(String)
+    chapter_ending = Column(Text)
+    key_events = Column(JSON)
+    state_changes = Column(JSON)
+    manga_page_data = Column(JSON)
     raw_response = Column(JSON)
     options = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)

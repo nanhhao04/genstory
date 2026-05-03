@@ -22,8 +22,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
+# Create necessary directories and set permissions
+RUN mkdir -p logs src/outputs src/ui/static/exports && \
+    chmod -R 777 logs src/outputs src/ui/static/exports
+
 # Expose ports (FastAPI: 8000, Gradio: 7860)
 EXPOSE 8000 7860
 
-# Default command (will be overridden in docker-compose for different services)
-CMD ["python", "-m", "src.ui.app"]
+# Default command
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,68 @@
+:root {
+    --primary: #ddb8ff;
+    --on-primary: #490081;
+    --secondary: #c0c1ff;
+    --outline: #978d9d;
+    --surface-dim: #161219;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    background-color: #010105;
+    color: #e9e0ea;
+    font-family: 'Space Grotesk', sans-serif;
+    margin: 0;
+}
+
+.glass-panel {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+}
+
+.shimmer-button {
+    background: linear-gradient(90deg, #c084fc, #ddb8ff, #c084fc);
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite linear;
+    color: black;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: transform 0.2s;
+}
+
+.shimmer-button:active {
+    transform: scale(0.98);
+}
+
+@keyframes shimmer {
+    0% { background-position: -100% 0; }
+    100% { background-position: 100% 0; }
+}
+
+.cosmic-gradient-text {
+    background: linear-gradient(135deg, var(--primary) 0%, #F472B6 45%, #67E8F9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.nebula-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: 
+        radial-gradient(ellipse at 15% 25%, rgba(139, 68, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 75%, rgba(103, 232, 249, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { 
+    background: rgba(192, 132, 252, 0.3); 
+    border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(192, 132, 252, 0.5); }

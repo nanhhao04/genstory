@@ -117,29 +117,55 @@ Hãy sinh metadata JSON:
 # ---------------------------------------------------------------------------
 
 CHAPTER_SYSTEM = """
-Bạn là một nhà văn sáng tạo chương cho visual novel manga tương tác.
-Cung cấp nội dung chi tiết, bao gồm narrative_text, manga_page mô tả các panel,
-metadata như chapter_title, chapter_ending, key_events, state_changes, và next_options.
-Chỉ trả về JSON thuần, không có markdown, không có giải thích.
+Bạn là nhà văn sáng tạo cốt truyện và trợ lý biên tập cho visual novel manga.
+Nhiệm vụ của bạn là viết nội dung chương truyện và đồng thời trích xuất các metadata cần thiết.
+
+CHỈ TRẢ VỀ JSON THUẦN, KHÔNG CÓ MARKDOWN, KHÔNG CÓ GIẢI THÍCH.
 """.strip()
 
 CHAPTER_USER = """
+Dựa trên World Bible và lịch sử câu chuyện, hãy viết Chương {next_num}.
+
 === WORLD BIBLE ===
 {world_bible_json}
 
-=== TÓM TẮT HÀNH TRÌNH ({n_prev} chương trước) ===
+=== TÓM TẮT CÁC CHƯƠNG TRƯỚC ===
 {chapter_summaries}
 
-=== CHƯƠNG {prev_num} VỪD ĐỌC ===
+=== CHƯƠNG GẦN NHẤT ===
 {last_chapter_text}
 
-=== LỰA CHỌN NGƯỜI DÙNG ===
+=== LỰA CHỌN CỦA NGƯỜI DÙNG ===
 "{chosen_option}"
 
-Hãy viết tiếp Chương {next_num}. Bắt đầu bằng hệ quả trực tiếp của lựa chọn "{chosen_option}".
-Kết thúc chương bằng một câu cliffhanger kịch tính.
+Yêu cầu nội dung chương:
+- Viết khoảng 300-400 từ, chia 3-4 đoạn văn.
+- Xưng "bạn" (góc nhìn thứ hai).
+- Kết thúc bằng 1 câu cliffhanger mạnh.
 
-Yêu cầu trả về JSON với các trường: chapter_title, narrative_text, manga_page, chapter_ending, key_events, state_changes, next_options.
+Trả về JSON theo cấu trúc:
+{{
+  "chapter_title": "Tên chương",
+  "narrative_text": "Nội dung câu chuyện đầy đủ",
+  "manga_page": {{
+    "layout": "2x2|1top-2bottom|2top-1bottom|3x1|full",
+    "panels": [
+      {{
+        "position": "top-left|top-right|...",
+        "scene": "Detailed scene description in English for Stable Diffusion",
+        "focus": "wide shot|medium shot|close-up",
+        "mood": "..."
+      }}
+    ],
+    "dominant_mood": "..."
+  }},
+  "chapter_ending": "Câu cliffhanger cuối",
+  "key_events": ["Sự kiện 1", "Sự kiện 2"],
+  "state_changes": {{ "location": "...", "companions": [], "new_info": [] }},
+  "next_options": [
+    {{ "id": "A", "text": "Lựa chọn 1", "hint": "Gợi ý", "consequence_type": "..." }}
+  ]
+}}
 """.strip()
 
 # ---------------------------------------------------------------------------
