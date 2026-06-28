@@ -1,18 +1,18 @@
-import pytest
-from httpx import AsyncClient, ASGITransport
-from src.backend.main import app
+from fastapi.testclient import TestClient
 
-@pytest.mark.asyncio
-async def test_read_root():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        response = await ac.get("/")
-    assert response.status_code == 307 # Redirect to /auth
+from src.api.main import app
 
-@pytest.mark.asyncio
-async def test_auth_page():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        response = await ac.get("/auth")
+
+client = TestClient(app)
+
+
+def test_read_root():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.url.path == "/auth"
+
+
+def test_auth_page():
+    response = client.get("/auth")
     assert response.status_code == 200
     assert "GenStory" in response.text

@@ -1,74 +1,118 @@
-"""
-schemas.py — cấu trúc dữ liệu cho interactive visual novel
-"""
+"""Story domain schemas for the interactive visual novel."""
+
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 
 @dataclass
 class Character:
     name: str
-    role: str               # "protagonist" | "side"
-    appearance: str         # mô tả ngoại hình tiếng Việt
-    sd_anchor: str          # cố định cho SD prompt, không thay đổi
+    role: str
+    appearance: str
+    sd_anchor: str
+
+
+@dataclass
+class StoryBeat:
+    chapter_number: int
+    title: str
+    objective: str
+    conflict: str
+    reveal: str
+    planned_choice_theme: str
+    must_include: list[str] = field(default_factory=list)
+
+
+@dataclass
+class StoryOutline:
+    premise: str
+    opening_hook: str
+    ending_vision: str
+    progression_notes: list[str] = field(default_factory=list)
+    beats: list[StoryBeat] = field(default_factory=list)
+
+
+@dataclass
+class StoryCanon:
+    current_location: str = ""
+    active_companions: list[str] = field(default_factory=list)
+    inventory: list[str] = field(default_factory=list)
+    revealed_information: list[str] = field(default_factory=list)
+    unresolved_threads: list[str] = field(default_factory=list)
+    relationship_states: dict[str, str] = field(default_factory=dict)
+    latest_status: str = ""
+
+
+@dataclass
+class MemoryEntry:
+    chapter_number: int
+    summary: str
+    key_events: list[str] = field(default_factory=list)
+    chosen_option: str = ""
+    canon_snapshot: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class WorldBible:
     story_id: str
     title: str
-    genre: str              # dark_fantasy | isekai | thriller | romance | shonen
-    art_style: str          # anime | manga_bw | dark_art | webtoon
-    tone: str               # dramatic | lighthearted | mysterious | action
-    setting: str            # mô tả thế giới
+    genre: str
+    art_style: str
+    tone: str
+    setting: str
     protagonist: Character
     side_characters: list[Character]
-    lore: str               # luật thế giới, hệ thống ma thuật, ...
-    target_chapters: int    # xấp xỉ, không ràng buộc
+    lore: str
+    target_chapters: int
+    opening_hook: str = ""
 
 
 @dataclass
 class MangaPanel:
-    position: str           # "top-left" | "top-right" | "bottom-left" | "bottom-right" | "full" | "wide-top" | "wide-bottom"
-    scene: str              # mô tả scene trong panel
-    focus: str              # "wide shot" | "medium shot" | "close-up" | "extreme close-up"
-    mood: str               # "tense" | "action" | "calm" | "emotional" | "mysterious"
+    position: str
+    scene: str
+    focus: str
+    mood: str
 
 
 @dataclass
 class MangaPage:
-    layout: str             # "2x2" | "1top-2bottom" | "2top-1bottom" | "3x1" | "full"
+    layout: str
     panels: list[MangaPanel]
     dominant_mood: str
 
 
 @dataclass
 class NextOption:
-    id: str                 # "A" | "B" | "C" | "D"
-    text: str               # hiển thị cho người dùng, < 15 từ
-    hint: str               # gợi ý hệ quả mơ hồ
-    consequence_type: str   # "combat" | "dialogue" | "exploration" | "stealth" | "magic"
+    id: str
+    text: str
+    hint: str
+    consequence_type: str
 
 
 @dataclass
 class Chapter:
     chapter_number: int
     title: str
-    choice_that_led_here: str           # option người dùng đã chọn (rỗng với chap 1)
-    narrative_text: str                  # full text, xưng "bạn", ~300-400 từ
+    choice_that_led_here: str
+    narrative_text: str
     manga_page: MangaPage
-    chapter_ending: str                  # cliffhanger kết chương
-    key_events: list[str]               # 3-5 bullets, dùng để tóm tắt cho chap sau
-    state_changes: dict                  # location, companions, items, revelations
+    chapter_ending: str
+    key_events: list[str]
+    state_changes: dict
     next_options: list[NextOption]
-    image_path: Optional[str] = None    # đường dẫn ảnh sau khi SD sinh xong
-    summary: Optional[str] = None       # tóm tắt ngắn, sinh sau khi lưu
+    image_path: Optional[str] = None
+    summary: Optional[str] = None
 
 
 @dataclass
 class StorySession:
-    """Toàn bộ state của 1 session người dùng đang chơi"""
+    """Complete state for an in-progress story."""
+
     world_bible: WorldBible
+    outline: Optional[StoryOutline] = None
+    canon: StoryCanon = field(default_factory=StoryCanon)
+    memory: list[MemoryEntry] = field(default_factory=list)
     chapters: list[Chapter] = field(default_factory=list)
 
     @property

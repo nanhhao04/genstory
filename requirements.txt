@@ -12,6 +12,7 @@ aiofiles
 # AI & LLM
 google-genai
 openai
+langgraph
 huggingface_hub
 Pillow
 
@@ -36,3 +37,7 @@ python-multipart
 pytest
 pytest-asyncio
 httpx
+
+# Monitoring
+prometheus-fastapi-instrumentator
+

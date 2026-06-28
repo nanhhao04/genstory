@@ -1,219 +1,253 @@
-# WORLD BIBLE — sinh 1 lần khi bắt đầu
+"""Prompt definitions for the multi-agent story pipeline."""
 
-WORLD_BIBLE_SYSTEM = """
-Bạn là nhà văn sáng tạo thế giới cho visual novel manga tương tác.
-Người dùng sẽ đóng vai nhân vật chính — luôn xưng "bạn" khi kể chuyện.
-Chỉ trả về JSON thuần, không có markdown, không có giải thích.
+STORY_PLANNER_SYSTEM = """
+You are the Story Planner Agent for an interactive visual novel.
+Design a coherent world, character cast, canon rules, and a high-level story outline.
+Return strict JSON only. No markdown. No explanation.
 """.strip()
 
-WORLD_BIBLE_USER = """
-Từ ý tưởng sau, hãy xây dựng world bible đầy đủ:
+STORY_PLANNER_USER = """
+Create the master story plan from this request.
 
-Mô tả cốt truyện: {description}
-Thể loại: {genre}
-Phong cách ảnh: {art_style}
-Tên nhân vật chính: {protagonist_name}
-Mô tả nhân vật chính: {protagonist_description}
-Độ dài: khoảng {target_chapters} chương
+Story description: {description}
+Genre: {genre}
+Art style: {art_style}
+Protagonist name: {protagonist_name}
+Protagonist description: {protagonist_description}
+Target chapters: {target_chapters}
 
-Trả về JSON với cấu trúc sau:
+Return JSON with this schema:
 {{
-  "title": "Tên truyện hấp dẫn",
-  "tone": "dramatic|lighthearted|mysterious|action",
-  "setting": "Mô tả thế giới, thời đại, bối cảnh (2-3 câu)",
-  "protagonist": {{
-    "name": "{protagonist_name}",
-    "appearance": "Mô tả ngoại hình chi tiết tiếng Việt dựa trên: {protagonist_description}",
-    "sd_anchor": "english description for SD: hair, eyes, outfit, body type — sẽ dùng trong mọi ảnh",
-    "background": "Xuất thân, động lực (2-3 câu)"
+  "world_bible": {{
+    "title": "Compelling title",
+    "tone": "dramatic|lighthearted|mysterious|action",
+    "setting": "World and era description",
+    "protagonist": {{
+      "name": "{protagonist_name}",
+      "appearance": "Detailed Vietnamese appearance description",
+      "sd_anchor": "Short English visual anchor",
+      "background": "Origin and motivation"
+    }},
+    "side_characters": [
+      {{
+        "name": "Character name",
+        "role": "Narrative role",
+        "appearance": "Appearance description",
+        "sd_anchor": "Short English visual anchor"
+      }}
+    ],
+    "lore": "World rules, power system, factions",
+    "opening_hook": "A strong opening hook for chapter 1"
   }},
-  "side_characters": [
-    {{
-      "name": "Tên",
-      "role": "Vai trò trong câu chuyện",
-      "appearance": "Mô tả ngoại hình",
-      "sd_anchor": "english SD description"
-    }}
-  ],
-  "lore": "Luật thế giới, hệ thống ma thuật/công nghệ, phe phái (3-4 câu)",
-  "opening_hook": "Câu mở đầu chương 1 gây hook mạnh cho người đọc"
+  "outline": {{
+    "premise": "One paragraph premise",
+    "opening_hook": "Hook for chapter 1",
+    "ending_vision": "The intended emotional ending direction",
+    "progression_notes": ["note 1", "note 2"],
+    "beats": [
+      {{
+        "chapter_number": 1,
+        "title": "Beat title",
+        "objective": "Main purpose of the chapter",
+        "conflict": "Primary conflict",
+        "reveal": "What new truth is revealed",
+        "planned_choice_theme": "What type of decision closes the chapter",
+        "must_include": ["required scene", "required reveal"]
+      }}
+    ]
+  }},
+  "initial_canon": {{
+    "current_location": "Starting location",
+    "active_companions": [],
+    "inventory": [],
+    "revealed_information": [],
+    "unresolved_threads": ["thread 1"],
+    "relationship_states": {{
+      "{protagonist_name}": "Self-driven but incomplete"
+    }},
+    "latest_status": "Current emotional and plot status"
+  }}
 }}
 
-Lưu ý:
-- sd_anchor phải bằng tiếng Anh, ngắn gọn, đặc trưng nhận dạng nhân vật
-- side_characters: 4-10 nhân vật phụ quan trọng
-- tone phải phù hợp với thể loại {genre}
+Rules:
+- Create exactly {target_chapters} beats.
+- Keep the tone aligned with the selected genre.
+- Side characters should be useful for future conflicts.
+- Make the outline suitable for branching choices but preserve a strong canon spine.
 """.strip()
 
-
-
-CHAPTER_NARRATIVE_SYSTEM = """
-Bạn là nhà văn kể chuyện cho visual novel manga tương tác.
-Luôn viết theo góc nhìn thứ hai — xưng "bạn".
-Chỉ trả về nội dung câu chuyện (narrative text), không có JSON, không có giải thích.
-Viết khoảng 300-400 từ, chia thành 3-4 đoạn văn.
+CHAPTER_WRITER_SYSTEM = """
+You are the Chapter Writer Agent.
+Write only the current chapter while respecting the planner's outline and the canon memory.
+Return strict JSON only. No markdown. No explanation.
 """.strip()
 
-CHAPTER_NARRATIVE_USER = """
+CHAPTER_WRITER_USER = """
+Write chapter {next_num} for this interactive story.
+
 === WORLD BIBLE ===
 {world_bible_json}
 
-=== TÓM TẮT HÀNH TRÌNH ({n_prev} chương trước) ===
-{chapter_summaries}
+=== STORY OUTLINE ===
+{outline_json}
 
-=== CHƯƠNG {prev_num} VỪD ĐỌC ===
+=== TARGET BEAT FOR THIS CHAPTER ===
+{beat_json}
+
+=== CURRENT CANON ===
+{canon_json}
+
+=== MEMORY OF PRIOR CHAPTERS ===
+{memory_json}
+
+=== LATEST CHAPTER ===
 {last_chapter_text}
 
-=== LỰA CHỌN NGƯỜI DÙNG ===
+=== USER CHOICE THAT LED HERE ===
 "{chosen_option}"
 
-Hãy viết tiếp Chương {next_num}. Bắt đầu bằng hệ quả trực tiếp của lựa chọn "{chosen_option}".
-Kết thúc chương bằng một câu cliffhanger kịch tính.
-""".strip()
+Requirements:
+- Write 300-450 words.
+- Use second person perspective in Vietnamese and address the protagonist as "ban".
+- Start from the consequence of the chosen option when chapter > 1.
+- Follow the beat objective and must_include constraints.
+- End with a sharp cliffhanger.
 
-CHAPTER_METADATA_SYSTEM = """
-Bạn là trợ lý biên tập cho visual novel. Nhiệm vụ của bạn là trích xuất metadata từ nội dung chương truyện.
-Chỉ trả về JSON thuần, không có markdown, không có giải thích.
-""".strip()
-
-CHAPTER_METADATA_USER = """
-Dựa trên nội dung chương {next_num} sau đây:
-
-"{narrative_text}"
-
-Hãy sinh metadata JSON:
+Return JSON:
 {{
-  "chapter_title": "Tên chương hấp dẫn",
+  "chapter_title": "Title",
+  "narrative_text": "Full chapter text",
   "manga_page": {{
     "layout": "2x2|1top-2bottom|2top-1bottom|3x1|full",
     "panels": [
       {{
         "position": "top-left|top-right|bottom-left|bottom-right|wide-top|wide-bottom|full",
-        "scene": "Mô tả scene cho SD (tiếng Anh). Phải bao gồm cả bối cảnh vật lý của scene.",
+        "scene": "Detailed English scene description for image generation",
         "focus": "wide shot|medium shot|close-up|extreme close-up",
         "mood": "tense|action|calm|emotional|mysterious|dramatic"
       }}
     ],
     "dominant_mood": "dark|action|emotional|mysterious|dramatic|hopeful"
   }},
-  "chapter_ending": "Trích dẫn chính xác câu cliffhanger cuối chương",
-  "key_events": ["Sự kiện 1", "Sự kiện 2", "Sự kiện 3"],
+  "chapter_ending": "Exact last-line cliffhanger",
+  "key_events": ["event 1", "event 2", "event 3"],
   "state_changes": {{
-    "location": "Vị trí hiện tại",
-    "companions": ["Tên đồng hành"],
-    "new_info": ["Bí mật mới"]
-  }},
-  "next_options": [
-    {{"id": "A", "text": "Lựa chọn 1 (<12 từ)", "hint": "Gợi ý", "consequence_type": "..."}},
-    {{"id": "B", "text": "...", "hint": "...", "consequence_type": "..."}},
-    {{"id": "C", "text": "...", "hint": "...", "consequence_type": "..."}},
-    {{"id": "D", "text": "...", "hint": "...", "consequence_type": "..."}}
-  ]
+    "location": "current location after the chapter",
+    "companions": ["active companion"],
+    "inventory": ["important item"],
+    "new_info": ["newly revealed truth"],
+    "unresolved_threads": ["remaining question"],
+    "relationship_states": {{
+      "character": "relationship update"
+    }},
+    "status": "short latest plot status"
+  }}
 }}
 """.strip()
 
-# ---------------------------------------------------------------------------
-# CHAPTER GENERATION — system and user prompts for generating a new chapter
-# ---------------------------------------------------------------------------
-
-CHAPTER_SYSTEM = """
-Bạn là nhà văn sáng tạo cốt truyện và trợ lý biên tập cho visual novel manga.
-Nhiệm vụ của bạn là viết nội dung chương truyện và đồng thời trích xuất các metadata cần thiết.
-
-CHỈ TRẢ VỀ JSON THUẦN, KHÔNG CÓ MARKDOWN, KHÔNG CÓ GIẢI THÍCH.
+INTERACTION_MANAGER_SYSTEM = """
+You are the Interaction Manager Agent.
+Generate coherent end-of-chapter choices, validate logic against canon, and update memory.
+Return strict JSON only. No markdown. No explanation.
 """.strip()
 
-CHAPTER_USER = """
-Dựa trên World Bible và lịch sử câu chuyện, hãy viết Chương {next_num}.
+INTERACTION_MANAGER_USER = """
+Review this completed chapter and act as canon + choice manager.
 
 === WORLD BIBLE ===
 {world_bible_json}
 
-=== TÓM TẮT CÁC CHƯƠNG TRƯỚC ===
-{chapter_summaries}
+=== STORY OUTLINE ===
+{outline_json}
 
-=== CHƯƠNG GẦN NHẤT ===
-{last_chapter_text}
+=== TARGET BEAT FOR THIS CHAPTER ===
+{beat_json}
 
-=== LỰA CHỌN CỦA NGƯỜI DÙNG ===
-"{chosen_option}"
+=== CURRENT CANON BEFORE UPDATE ===
+{canon_json}
 
-Yêu cầu nội dung chương:
-- Viết khoảng 300-400 từ, chia 3-4 đoạn văn.
-- Xưng "bạn" (góc nhìn thứ hai).
-- Kết thúc bằng 1 câu cliffhanger mạnh.
+=== MEMORY OF PRIOR CHAPTERS ===
+{memory_json}
 
-Trả về JSON theo cấu trúc:
+=== CHAPTER DRAFT ===
+{chapter_json}
+
+Return JSON:
 {{
-  "chapter_title": "Tên chương",
-  "narrative_text": "Nội dung câu chuyện đầy đủ",
-  "manga_page": {{
-    "layout": "2x2|1top-2bottom|2top-1bottom|3x1|full",
-    "panels": [
-      {{
-        "position": "top-left|top-right|...",
-        "scene": "Detailed scene description in English for Stable Diffusion",
-        "focus": "wide shot|medium shot|close-up",
-        "mood": "..."
-      }}
-    ],
-    "dominant_mood": "..."
+  "summary": ["bullet 1", "bullet 2", "bullet 3", "bullet 4"],
+  "canon_update": {{
+    "current_location": "updated location",
+    "active_companions": ["companion"],
+    "inventory": ["important item"],
+    "revealed_information": ["known truth"],
+    "unresolved_threads": ["open thread"],
+    "relationship_states": {{
+      "character": "state"
+    }},
+    "latest_status": "current story status"
   }},
-  "chapter_ending": "Câu cliffhanger cuối",
-  "key_events": ["Sự kiện 1", "Sự kiện 2"],
-  "state_changes": {{ "location": "...", "companions": [], "new_info": [] }},
   "next_options": [
-    {{ "id": "A", "text": "Lựa chọn 1", "hint": "Gợi ý", "consequence_type": "..." }}
-  ]
+    {{
+      "id": "A",
+      "text": "Choice text under 12 words",
+      "hint": "What it may risk or gain",
+      "consequence_type": "combat|dialogue|exploration|stealth|magic"
+    }},
+    {{
+      "id": "B",
+      "text": "Another distinct choice",
+      "hint": "Different tradeoff",
+      "consequence_type": "combat|dialogue|exploration|stealth|magic"
+    }},
+    {{
+      "id": "C",
+      "text": "Third distinct choice",
+      "hint": "Different tradeoff",
+      "consequence_type": "combat|dialogue|exploration|stealth|magic"
+    }},
+    {{
+      "id": "D",
+      "text": "Fourth distinct choice",
+      "hint": "Different tradeoff",
+      "consequence_type": "combat|dialogue|exploration|stealth|magic"
+    }}
+  ],
+  "consistency_report": {{
+    "is_consistent": true,
+    "issues": [],
+    "reasoning": "Short explanation"
+  }}
 }}
+
+Rules:
+- Choices must follow directly from the chapter ending.
+- Choices must be meaningfully different from each other.
+- Preserve canon continuity.
+- If you find a contradiction, resolve it conservatively in canon_update and report it.
 """.strip()
-
-# ---------------------------------------------------------------------------
-# CHAPTER SUMMARIZER — tóm tắt chương cũ để tiết kiệm token
-# ---------------------------------------------------------------------------
-
-SUMMARIZE_SYSTEM = """
-Tóm tắt ngắn gọn nội dung chương truyện.
-Chỉ trả về JSON thuần.
-""".strip()
-
-SUMMARIZE_USER = """
-Tóm tắt chương sau thành đúng 4-5 bullet points.
-Chỉ giữ: sự kiện quan trọng, thay đổi nhân vật, địa điểm, bí mật phát hiện.
-Bỏ: cảm xúc chi tiết, hội thoại dài, mô tả phong cảnh.
-
-{chapter_text}
-
-Trả về: {{"summary": ["bullet 1", "bullet 2", "bullet 3", "bullet 4"]}}
-""".strip()
-
-
-# ---------------------------------------------------------------------------
-# SD PROMPT BUILDER
-# ---------------------------------------------------------------------------
 
 LAYOUT_KEYWORDS = {
-    "2x2":          "4-panel manga page, 2x2 grid layout, equal panels",
+    "2x2": "4-panel manga page, 2x2 grid layout, equal panels",
     "1top-2bottom": "3-panel manga page, one large panel on top, two smaller panels on bottom",
     "2top-1bottom": "3-panel manga page, two smaller panels on top, one large panel on bottom",
-    "3x1":          "3-panel manga page, three horizontal panels stacked vertically",
-    "full":         "single full-page manga panel",
+    "3x1": "3-panel manga page, three horizontal panels stacked vertically",
+    "full": "single full-page manga panel",
 }
 
 MOOD_KEYWORDS = {
-    "dark":       "dark atmosphere, heavy shadows, dramatic chiaroscuro lighting",
-    "action":     "dynamic poses, speed lines, motion blur, kinetic energy",
-    "emotional":  "soft lighting, detailed facial expressions, intimate framing",
+    "dark": "dark atmosphere, heavy shadows, dramatic chiaroscuro lighting",
+    "action": "dynamic poses, speed lines, motion blur, kinetic energy",
+    "emotional": "soft lighting, detailed facial expressions, intimate framing",
     "mysterious": "foggy atmosphere, moonlight, long shadows, silhouettes",
-    "dramatic":   "low angle shot, strong contrast, intense expressions",
-    "hopeful":    "warm lighting, open space, uplifting composition",
+    "dramatic": "low angle shot, strong contrast, intense expressions",
+    "hopeful": "warm lighting, open space, uplifting composition",
 }
 
 ART_STYLE_KEYWORDS = {
-    "anime":    "anime style, vibrant colors, clean linework, detailed shading",
+    "anime": "anime style, vibrant colors, clean linework, detailed shading",
     "manga_bw": "black and white manga, clean ink linework, screentone shading, no color",
     "dark_art": "dark fantasy illustration, muted colors, painterly style, atmospheric",
-    "webtoon":  "webtoon style, flat clean colors, simple linework, bright palette",
+    "webtoon": "webtoon style, flat clean colors, simple linework, bright palette",
 }
 
 SD_NEGATIVE = (
@@ -225,34 +259,28 @@ SD_NEGATIVE = (
 
 
 def build_sd_prompt(manga_page: dict, world_bible: dict, art_style: str) -> dict:
-    """
-    Tạo SD prompt từ manga_page JSON và world bible.
-    Trả về dict với prompt, negative_prompt, width, height, seed.
-    """
-    layout      = manga_page.get("layout", "2x2")
-    dom_mood    = manga_page.get("dominant_mood", "dramatic")
-    panels      = manga_page.get("panels", [])
-    protagonist = world_bible.get("protagonist", {})
-    anchor      = protagonist.get("sd_anchor", "")
+    """Build an image prompt from the manga page and story world."""
 
-    # Lấy sd_anchor của tất cả side chars có mặt
+    layout = manga_page.get("layout", "2x2")
+    dom_mood = manga_page.get("dominant_mood", "dramatic")
+    panels = manga_page.get("panels", [])
+    protagonist = world_bible.get("protagonist", {})
+    anchor = protagonist.get("sd_anchor", "")
+
     side_anchors = []
     for char in world_bible.get("side_characters", []):
-        # Kiểm tra xem nhân vật phụ có xuất hiện trong panels không
         char_name = char.get("name", "").lower()
         for panel in panels:
             if char_name in panel.get("scene", "").lower():
                 side_anchors.append(char.get("sd_anchor", ""))
                 break
 
-    # Mô tả từng panel
     panel_descs = []
-    for i, panel in enumerate(panels, 1):
+    for idx, panel in enumerate(panels, 1):
         focus = panel.get("focus", "medium shot")
         scene = panel.get("scene", "")
-        panel_descs.append(f"panel {i} [{focus}]: {scene}")
+        panel_descs.append(f"panel {idx} [{focus}]: {scene}")
 
-    # Ghép prompt
     all_anchors = ", ".join(filter(None, [anchor] + side_anchors))
     panels_text = " | ".join(panel_descs)
 
@@ -266,16 +294,15 @@ def build_sd_prompt(manga_page: dict, world_bible: dict, art_style: str) -> dict
         f"high quality, detailed, professional manga art"
     )
 
-    # Seed cố định per story → style nhất quán toàn bộ story
-    story_id    = world_bible.get("story_id", "default")
+    story_id = world_bible.get("story_id", "default")
     stable_seed = abs(hash(story_id)) % (2 ** 31)
 
     return {
-        "prompt":          prompt,
+        "prompt": prompt,
         "negative_prompt": SD_NEGATIVE,
-        "width":           768,
-        "height":          1024,    # tỉ lệ đứng như trang manga
+        "width": 768,
+        "height": 1024,
         "num_inference_steps": 28,
-        "guidance_scale":  7.5,
-        "seed":            stable_seed,
+        "guidance_scale": 7.5,
+        "seed": stable_seed,
     }

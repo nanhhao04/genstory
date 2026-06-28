@@ -153,7 +153,7 @@
 
         async function fetchUser() {
             try {
-                const response = await fetch('/api/users/me', {
+                const response = await fetch('/api/auth/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const user = await response.json();
@@ -169,7 +169,15 @@
             
             const formData = new FormData(e.target);
             const jsonData = Object.fromEntries(formData.entries());
+            jsonData.description = (jsonData.description || '').trim();
+            jsonData.protagonist_name = (jsonData.protagonist_name || '').trim();
+            jsonData.protagonist_description = (jsonData.protagonist_description || '').trim();
             jsonData.target_chapters = parseInt(jsonData.target_chapters);
+
+            if (jsonData.description.length < 20) {
+                alert('Mo ta cau chuyen can it nhat 20 ky tu.');
+                return;
+            }
 
             overlay.classList.remove('hidden');
             status.innerText = "Đang dệt nên chương đầu tiên...";

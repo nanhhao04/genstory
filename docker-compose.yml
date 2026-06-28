@@ -1,6 +1,5 @@
-version: '3.8'
-
 services:
+
   backend:
     build: .
     container_name: genstory_backend
@@ -61,6 +60,28 @@ services:
       - db
       - redis
     command: pytest src/tests
+
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: genstory_prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana-oss:10.0.0
+    container_name: genstory_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
 
 volumes:
   postgres_data:

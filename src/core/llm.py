@@ -6,6 +6,8 @@ from huggingface_hub import AsyncInferenceClient
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 import logging
+import time
+from src.core.metrics import LLM_GENERATION_DURATION
 
 load_dotenv()
 
@@ -36,6 +38,9 @@ class UnifiedLLM:
 
     async def generate_content_async(self, prompt, **kwargs):
         """Unified interface for generating content with fallback logic."""
+        agent_name = kwargs.pop("agent_name", "unknown")
+        task_name = kwargs.pop("task_name", "unknown")
+
         providers_to_try = []
         if self.default_provider == "openai" and self.openai_client:
             providers_to_try.append("openai")
@@ -45,6 +50,7 @@ class UnifiedLLM:
         
         for provider in providers_to_try:
             if provider == "openai":
+                start_time = time.time()
                 try:
                     print(f"  [LLM] 🚀 Attempting generation with OpenAI (Model: {os.getenv('OPENAI_MODEL', 'gpt-4o-mini')})...")
                     response = await self.openai_client.chat.completions.create(
@@ -53,9 +59,23 @@ class UnifiedLLM:
                         timeout=30,
                         **kwargs
                     )
+                    duration = time.time() - start_time
+                    LLM_GENERATION_DURATION.labels(
+                        provider="openai",
+                        status="success",
+                        agent_name=agent_name,
+                        task_name=task_name
+                    ).observe(duration)
                     print(f"  [LLM] ✅ OpenAI success.")
                     return type('obj', (object,), {'text': response.choices[0].message.content})
                 except Exception as e:
+                    duration = time.time() - start_time
+                    LLM_GENERATION_DURATION.labels(
+                        provider="openai",
+                        status="failed",
+                        agent_name=agent_name,
+                        task_name=task_name
+                    ).observe(duration)
                     print(f"  [LLM] ❌ OpenAI Failed: {e}. Falling back to Gemini...")
                     last_error = e
                     continue # Try Gemini
@@ -70,6 +90,7 @@ class UnifiedLLM:
                 max_attempts = len(self.gemini_keys)
                 
                 while attempts < max_attempts:
+                    start_time = time.time()
                     try:
                         print(f"  [LLM] 🚀 Attempting Gemini (Key Index: {self.current_gemini_key_idx})...")
                         # New SDK async call
@@ -77,9 +98,23 @@ class UnifiedLLM:
                             model=self.model_name,
                             contents=prompt
                         )
+                        duration = time.time() - start_time
+                        LLM_GENERATION_DURATION.labels(
+                            provider="gemini",
+                            status="success",
+                            agent_name=agent_name,
+                            task_name=task_name
+                        ).observe(duration)
                         print(f"  [LLM] ✅ Gemini success (Key Index: {self.current_gemini_key_idx}).")
                         return response
                     except Exception as e:
+                        duration = time.time() - start_time
+                        LLM_GENERATION_DURATION.labels(
+                            provider="gemini",
+                            status="failed",
+                            agent_name=agent_name,
+                            task_name=task_name
+                        ).observe(duration)
                         attempts += 1
                         print(f"  [LLM] ❌ Gemini Failed (Key {self.current_gemini_key_idx}): {e}")
                         last_error = e
@@ -123,7 +158,7 @@ def connect_llm():
     cfg['HF_TOKEN'] = hf_token
     cfg['HF_IMAGE_MODEL'] = hf_model
 
-    model_name = os.getenv("GEMINI_MODEL") or "gemini-1.5-flash"
+    model_name = os.getenv("GEMINI_MODEL") or "gemini-2.5-flash"
     
     llm = UnifiedLLM(model_name, gemini_keys, openai_key)
     hf_client = AsyncInferenceClient(token=hf_token)

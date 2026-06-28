@@ -178,7 +178,7 @@
                     <td class="py-6 px-8">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-highest border border-white/10 group-hover:border-purple-500/50 transition-colors">
-                                <img src="${story.thumbnail ? '/' + story.thumbnail : '/static/placeholder.png'}" onerror="this.src='https://via.placeholder.com/100x100/161219/ddb8ff?text=Story'" class="w-full h-full object-cover">
+                                <img src="${story.thumbnail ? '/' + story.thumbnail : '/static/placeholder.svg'}" onerror="this.src='https://via.placeholder.com/100x100/161219/ddb8ff?text=Story'" class="w-full h-full object-cover">
                             </div>
                             <span class="font-bold text-lg group-hover:text-primary transition-colors font-['Noto_Serif']">${story.title}</span>
                         </div>
@@ -208,7 +208,7 @@
 
         async function fetchUser() {
             try {
-                const response = await fetch('/api/users/me', {
+                const response = await fetch('/api/auth/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const user = await response.json();
