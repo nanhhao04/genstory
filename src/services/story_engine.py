@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 import logging
 import os
-import requests
 import uuid
+from dataclasses import asdict
 from typing import Callable, Optional
 
+import requests
 from fpdf import FPDF
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,7 +62,9 @@ class StoryEngine:
         if not self.db:
             return False
 
-        result = await self.db.execute(select(WorldBibleTable).where(WorldBibleTable.id == story_id))
+        result = await self.db.execute(
+            select(WorldBibleTable).where(WorldBibleTable.id == story_id)
+        )
         db_bible = result.scalars().first()
         if not db_bible:
             return False
@@ -81,9 +83,7 @@ class StoryEngine:
                 appearance=db_bible.protagonist_description,
                 sd_anchor=lore.get("protagonist_sd_anchor", ""),
             ),
-            side_characters=[
-                Character(**item) for item in lore.get("side_characters", []) or []
-            ],
+            side_characters=[Character(**item) for item in lore.get("side_characters", []) or []],
             lore=lore.get("lore", ""),
             target_chapters=lore.get("target_chapters", 8),
             opening_hook=lore.get("opening_hook", ""),
@@ -134,7 +134,9 @@ class StoryEngine:
         ]
 
         chapter_result = await self.db.execute(
-            select(ChapterTable).where(ChapterTable.story_id == story_id).order_by(ChapterTable.chapter_number)
+            select(ChapterTable)
+            .where(ChapterTable.story_id == story_id)
+            .order_by(ChapterTable.chapter_number)
         )
         db_chapters = chapter_result.scalars().all()
         chapters = []
@@ -208,7 +210,9 @@ class StoryEngine:
 
         return chapter
 
-    async def next_chapter(self, chosen_option_text: str, progress_callback: Optional[Callable] = None) -> Chapter:
+    async def next_chapter(
+        self, chosen_option_text: str, progress_callback: Optional[Callable] = None
+    ) -> Chapter:
         if not self.session:
             raise RuntimeError("Chua co story session.")
 
@@ -251,7 +255,9 @@ class StoryEngine:
             is_finished=1 if self.session.is_finished else 0,
         )
         self.db.add(db_story)
-        await self._save_chapter_to_db(self.session.world_bible.story_id, self.session.latest_chapter)
+        await self._save_chapter_to_db(
+            self.session.world_bible.story_id, self.session.latest_chapter
+        )
         await self.db.commit()
 
     async def _save_next_chapter(self, chapter: Chapter) -> None:
@@ -313,7 +319,11 @@ class StoryEngine:
         if not self.session or not self.session.chapters:
             return []
         return [
-            {"number": chapter.chapter_number, "title": chapter.title, "summary": chapter.summary or ""}
+            {
+                "number": chapter.chapter_number,
+                "title": chapter.title,
+                "summary": chapter.summary or "",
+            }
             for chapter in self.session.chapters
         ]
 
@@ -361,7 +371,14 @@ class StoryEngine:
 
         pdf.add_page()
         pdf.set_font(font_family, size=22)
-        pdf.multi_cell(effective_w, 12, f"TRUYEN: {self.story_title.upper()}", align="C", new_x="LMARGIN", new_y="NEXT")
+        pdf.multi_cell(
+            effective_w,
+            12,
+            f"TRUYEN: {self.story_title.upper()}",
+            align="C",
+            new_x="LMARGIN",
+            new_y="NEXT",
+        )
         pdf.set_font(font_family, size=13)
         pdf.multi_cell(
             effective_w,
@@ -373,8 +390,20 @@ class StoryEngine:
         )
         pdf.ln(10)
         pdf.set_font(font_family, size=12)
-        pdf.multi_cell(effective_w, 8, f"Nhan vat chinh: {bible.protagonist.name}", new_x="LMARGIN", new_y="NEXT")
-        pdf.multi_cell(effective_w, 8, f"Mo ta: {bible.protagonist.appearance[:200]}", new_x="LMARGIN", new_y="NEXT")
+        pdf.multi_cell(
+            effective_w,
+            8,
+            f"Nhan vat chinh: {bible.protagonist.name}",
+            new_x="LMARGIN",
+            new_y="NEXT",
+        )
+        pdf.multi_cell(
+            effective_w,
+            8,
+            f"Mo ta: {bible.protagonist.appearance[:200]}",
+            new_x="LMARGIN",
+            new_y="NEXT",
+        )
         pdf.ln(10)
 
         for chapter in chapters:

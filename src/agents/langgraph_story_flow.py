@@ -8,8 +8,8 @@ from langgraph.graph import END, START, StateGraph
 
 from src.agents import ChapterWriterAgent, InteractionManagerAgent, StoryPlannerAgent
 from src.schemas.story import Chapter, MemoryEntry, StorySession
-from src.services.memory_service import select_relevant_memories
 from src.services.image_service import generate_manga_page
+from src.services.memory_service import select_relevant_memories
 
 
 class StoryGraphState(TypedDict, total=False):
@@ -149,8 +149,14 @@ class StoryLangGraphOrchestrator:
         return {"retrieved_memories": retrieved}
 
     async def _finalize_interaction_node(self, state: StoryGraphState) -> StoryGraphState:
-        self._emit_progress(state, 0.7 if state["session"].current_chapter_number == 0 else 0.65, "Dang kiem tra logic, choices va memory...")
-        chapter = await self.interaction_manager.finalize_chapter(state["session"], state["chapter"])
+        self._emit_progress(
+            state,
+            0.7 if state["session"].current_chapter_number == 0 else 0.65,
+            "Dang kiem tra logic, choices va memory...",
+        )
+        chapter = await self.interaction_manager.finalize_chapter(
+            state["session"], state["chapter"]
+        )
         return {"session": state["session"], "chapter": chapter}
 
     async def _generate_image_node(self, state: StoryGraphState) -> StoryGraphState:

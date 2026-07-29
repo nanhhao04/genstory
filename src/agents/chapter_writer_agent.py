@@ -8,7 +8,15 @@ from typing import Any
 from src.agents.base import BaseStoryAgent
 from src.core.guardrails import validate_chapter_output
 from src.prompts.story_prompts import CHAPTER_WRITER_SYSTEM, CHAPTER_WRITER_USER
-from src.schemas.story import Chapter, MangaPage, MangaPanel, MemoryEntry, StoryBeat, StorySession, WorldBible
+from src.schemas.story import (
+    Chapter,
+    MangaPage,
+    MangaPanel,
+    MemoryEntry,
+    StoryBeat,
+    StorySession,
+    WorldBible,
+)
 from src.services.memory_service import build_writer_memory_payload, select_relevant_memories
 
 
@@ -23,7 +31,11 @@ class ChapterWriterAgent(BaseStoryAgent):
     ) -> Chapter:
         next_num = session.current_chapter_number + 1
         beat = self._get_current_beat(session, next_num)
-        relevant_memories = retrieved_memories if retrieved_memories is not None else select_relevant_memories(session, beat)
+        relevant_memories = (
+            retrieved_memories
+            if retrieved_memories is not None
+            else select_relevant_memories(session, beat)
+        )
 
         last_chapter_text = "(Chua co - day la chuong 1)"
         if session.latest_chapter:
@@ -44,23 +56,27 @@ class ChapterWriterAgent(BaseStoryAgent):
                 canon_json=self.dump_json(asdict(session.canon)),
                 memory_json=self.dump_json(build_writer_memory_payload(session, relevant_memories)),
                 last_chapter_text=last_chapter_text,
-                chosen_option=chosen_option or session.world_bible.opening_hook or "Bat dau cau chuyen",
+                chosen_option=chosen_option
+                or session.world_bible.opening_hook
+                or "Bat dau cau chuyen",
             ),
             log_name=f"chapter_writer_{next_num}",
             context=f"chapter_writer_{next_num}",
         )
 
-        return validate_chapter_output(Chapter(
-            chapter_number=next_num,
-            title=payload.get("chapter_title", f"Chuong {next_num}"),
-            choice_that_led_here=chosen_option,
-            narrative_text=payload.get("narrative_text", ""),
-            manga_page=self._parse_manga_page(payload.get("manga_page", {})),
-            chapter_ending=payload.get("chapter_ending", ""),
-            key_events=payload.get("key_events", []) or [],
-            state_changes=payload.get("state_changes", {}) or {},
-            next_options=[],
-        ))
+        return validate_chapter_output(
+            Chapter(
+                chapter_number=next_num,
+                title=payload.get("chapter_title", f"Chuong {next_num}"),
+                choice_that_led_here=chosen_option,
+                narrative_text=payload.get("narrative_text", ""),
+                manga_page=self._parse_manga_page(payload.get("manga_page", {})),
+                chapter_ending=payload.get("chapter_ending", ""),
+                key_events=payload.get("key_events", []) or [],
+                state_changes=payload.get("state_changes", {}) or {},
+                next_options=[],
+            )
+        )
 
     def _get_current_beat(self, session: StorySession, chapter_number: int) -> StoryBeat | None:
         if not session.outline:

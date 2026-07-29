@@ -1,7 +1,10 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, JSON
-from sqlalchemy.orm import relationship
 from datetime import datetime
+
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
+
 from src.database.session import Base
+
 
 class UserTable(Base):
     __tablename__ = "users"
@@ -15,11 +18,14 @@ class UserTable(Base):
 
     world_bibles = relationship("WorldBibleTable", back_populates="user")
 
+
 class WorldBibleTable(Base):
     __tablename__ = "world_bibles"
 
     id = Column(String, primary_key=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=True) # Temporarily nullable for migration
+    user_id = Column(
+        String, ForeignKey("users.id"), nullable=True
+    )  # Temporarily nullable for migration
     title = Column(String)
     genre = Column(String)
     art_style = Column(String)
@@ -31,6 +37,7 @@ class WorldBibleTable(Base):
     user = relationship("UserTable", back_populates="world_bibles")
     stories = relationship("StoryTable", back_populates="world_bible")
 
+
 class StoryTable(Base):
     __tablename__ = "stories"
 
@@ -38,11 +45,12 @@ class StoryTable(Base):
     world_bible_id = Column(String, ForeignKey("world_bibles.id"))
     current_chapter_index = Column(Integer, default=1)
     target_chapters = Column(Integer, default=8)
-    is_finished = Column(Integer, default=0) # 0: False, 1: True
+    is_finished = Column(Integer, default=0)  # 0: False, 1: True
     created_at = Column(DateTime, default=datetime.utcnow)
 
     world_bible = relationship("WorldBibleTable", back_populates="stories")
     chapters = relationship("ChapterTable", back_populates="story")
+
 
 class ChapterTable(Base):
     __tablename__ = "chapters"

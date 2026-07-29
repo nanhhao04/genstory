@@ -21,19 +21,21 @@ class BaseStoryAgent(ABC):
 
     async def call_text(self, system: str, user: str, log_name: str) -> str:
         prompt = f"{system}\n\n{user}"
-        response = await llm.generate_content_async(prompt, agent_name=self.name, task_name=log_name)
+        response = await llm.generate_content_async(
+            prompt, agent_name=self.name, task_name=log_name
+        )
         text = response.text
         self._log_exchange(log_name, prompt, text)
         return text
 
-    async def call_json(self, system: str, user: str, log_name: str, context: str) -> dict[str, Any]:
+    async def call_json(
+        self, system: str, user: str, log_name: str, context: str
+    ) -> dict[str, Any]:
         raw = await self.call_text(system, user, log_name=log_name)
         try:
             return self.parse_json(raw, context=context)
         except ValueError as exc:
-            repair_system = (
-                "You repair malformed JSON. Return valid JSON only and preserve the intended schema."
-            )
+            repair_system = "You repair malformed JSON. Return valid JSON only and preserve the intended schema."
             repair_user = f"Context: {context}\nError: {exc}\n\nText to repair:\n{raw}"
             repaired = await self.call_text(
                 repair_system,

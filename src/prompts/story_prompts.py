@@ -295,7 +295,7 @@ def build_sd_prompt(manga_page: dict, world_bible: dict, art_style: str) -> dict
     )
 
     story_id = world_bible.get("story_id", "default")
-    stable_seed = abs(hash(story_id)) % (2 ** 31)
+    stable_seed = abs(hash(story_id)) % (2**31)
 
     return {
         "prompt": prompt,

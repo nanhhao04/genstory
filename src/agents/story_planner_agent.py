@@ -7,7 +7,14 @@ import uuid
 from src.agents.base import BaseStoryAgent
 from src.core.guardrails import validate_story_session
 from src.prompts.story_prompts import STORY_PLANNER_SYSTEM, STORY_PLANNER_USER
-from src.schemas.story import Character, StoryBeat, StoryCanon, StoryOutline, StorySession, WorldBible
+from src.schemas.story import (
+    Character,
+    StoryBeat,
+    StoryCanon,
+    StoryOutline,
+    StorySession,
+    WorldBible,
+)
 
 
 class StoryPlannerAgent(BaseStoryAgent):
@@ -52,7 +59,9 @@ class StoryPlannerAgent(BaseStoryAgent):
             protagonist=Character(
                 name=world_data.get("protagonist", {}).get("name", protagonist_name),
                 role="protagonist",
-                appearance=world_data.get("protagonist", {}).get("appearance", protagonist_description or ""),
+                appearance=world_data.get("protagonist", {}).get(
+                    "appearance", protagonist_description or ""
+                ),
                 sd_anchor=world_data.get("protagonist", {}).get("sd_anchor", ""),
             ),
             side_characters=[

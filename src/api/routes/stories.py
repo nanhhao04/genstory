@@ -71,9 +71,14 @@ async def list_my_stories(
     current_user: UserTable = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(WorldBibleTable).where(WorldBibleTable.user_id == current_user.id))
+    result = await db.execute(
+        select(WorldBibleTable).where(WorldBibleTable.user_id == current_user.id)
+    )
     stories = result.scalars().all()
-    return [{"id": story.id, "title": story.title, "genre": story.genre, "created_at": story.created_at} for story in stories]
+    return [
+        {"id": story.id, "title": story.title, "genre": story.genre, "created_at": story.created_at}
+        for story in stories
+    ]
 
 
 @router.get("/{story_id}/pdf")
@@ -88,7 +93,9 @@ async def export_pdf(
 
     try:
         pdf_path = await engine.export_to_pdf()
-        return FileResponse(path=pdf_path, filename=f"GenStory_{story_id}.pdf", media_type="application/pdf")
+        return FileResponse(
+            path=pdf_path, filename=f"GenStory_{story_id}.pdf", media_type="application/pdf"
+        )
     except Exception as exc:
         logging.error("Error exporting PDF: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc)) from exc

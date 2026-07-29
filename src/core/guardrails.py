@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from dataclasses import replace
 
 from src.schemas.story import (
     Chapter,
@@ -18,7 +17,15 @@ from src.schemas.story import (
 )
 
 ALLOWED_GENRES = {"dark_fantasy", "sci_fi", "thriller", "romance", "adventure"}
-ALLOWED_ART_STYLES = {"anime", "cyberpunk", "dark_art", "realistic_anime", "ghibli_style", "manga_bw", "webtoon"}
+ALLOWED_ART_STYLES = {
+    "anime",
+    "cyberpunk",
+    "dark_art",
+    "realistic_anime",
+    "ghibli_style",
+    "manga_bw",
+    "webtoon",
+}
 ALLOWED_CONSEQUENCE_TYPES = {"combat", "dialogue", "exploration", "stealth", "magic"}
 INPUT_INJECTION_PATTERNS = (
     r"ignore\s+previous\s+instructions",
@@ -87,7 +94,9 @@ def validate_user_choice_input(chosen_option_text: str) -> str:
     choice = sanitize_text(chosen_option_text, max_length=120, field_name="chosen_option_text")
     for pattern in INPUT_INJECTION_PATTERNS:
         if re.search(pattern, choice.lower()):
-            raise GuardrailViolation("Choice input appears to contain prompt injection or unsafe markup.")
+            raise GuardrailViolation(
+                "Choice input appears to contain prompt injection or unsafe markup."
+            )
     return choice
 
 
@@ -117,8 +126,12 @@ def validate_story_session(session: StorySession) -> StorySession:
 
 def validate_chapter_output(chapter: Chapter) -> Chapter:
     chapter.title = sanitize_text(chapter.title, max_length=120, field_name="chapter_title")
-    chapter.narrative_text = sanitize_text(chapter.narrative_text, max_length=6000, field_name="narrative_text")
-    chapter.chapter_ending = sanitize_text(chapter.chapter_ending or chapter.title, max_length=300, field_name="chapter_ending")
+    chapter.narrative_text = sanitize_text(
+        chapter.narrative_text, max_length=6000, field_name="narrative_text"
+    )
+    chapter.chapter_ending = sanitize_text(
+        chapter.chapter_ending or chapter.title, max_length=300, field_name="chapter_ending"
+    )
     chapter.key_events = _normalize_list(chapter.key_events, max_items=6, item_max_length=220)
     if len(chapter.key_events) < 2:
         raise GuardrailViolation("Chapter output must include at least two key events.")
@@ -142,8 +155,12 @@ def _normalize_world_bible(world_bible: WorldBible) -> WorldBible:
     world_bible.tone = sanitize_text(world_bible.tone, max_length=40, field_name="tone")
     world_bible.setting = sanitize_text(world_bible.setting, max_length=800, field_name="setting")
     world_bible.lore = sanitize_text(world_bible.lore, max_length=1200, field_name="lore")
-    world_bible.opening_hook = sanitize_optional_text(world_bible.opening_hook, max_length=300, field_name="opening_hook")
-    world_bible.protagonist.name = sanitize_text(world_bible.protagonist.name, max_length=60, field_name="protagonist_name")
+    world_bible.opening_hook = sanitize_optional_text(
+        world_bible.opening_hook, max_length=300, field_name="opening_hook"
+    )
+    world_bible.protagonist.name = sanitize_text(
+        world_bible.protagonist.name, max_length=60, field_name="protagonist_name"
+    )
     world_bible.protagonist.appearance = sanitize_text(
         world_bible.protagonist.appearance,
         max_length=500,
@@ -157,27 +174,49 @@ def _normalize_world_bible(world_bible: WorldBible) -> WorldBible:
     world_bible.side_characters = world_bible.side_characters[:10]
     for char in world_bible.side_characters:
         char.name = sanitize_text(char.name, max_length=60, field_name="side_character_name")
-        char.role = sanitize_optional_text(char.role, max_length=80, field_name="side_character_role")
-        char.appearance = sanitize_optional_text(char.appearance, max_length=400, field_name="side_character_appearance")
-        char.sd_anchor = sanitize_optional_text(char.sd_anchor, max_length=200, field_name="side_character_sd_anchor")
+        char.role = sanitize_optional_text(
+            char.role, max_length=80, field_name="side_character_role"
+        )
+        char.appearance = sanitize_optional_text(
+            char.appearance, max_length=400, field_name="side_character_appearance"
+        )
+        char.sd_anchor = sanitize_optional_text(
+            char.sd_anchor, max_length=200, field_name="side_character_sd_anchor"
+        )
     return world_bible
 
 
 def _normalize_outline(outline: StoryOutline, target_chapters: int) -> StoryOutline:
     outline.premise = sanitize_text(outline.premise, max_length=1000, field_name="premise")
-    outline.opening_hook = sanitize_optional_text(outline.opening_hook, max_length=300, field_name="outline_opening_hook")
-    outline.ending_vision = sanitize_optional_text(outline.ending_vision, max_length=600, field_name="ending_vision")
-    outline.progression_notes = _normalize_list(outline.progression_notes, max_items=12, item_max_length=250)
+    outline.opening_hook = sanitize_optional_text(
+        outline.opening_hook, max_length=300, field_name="outline_opening_hook"
+    )
+    outline.ending_vision = sanitize_optional_text(
+        outline.ending_vision, max_length=600, field_name="ending_vision"
+    )
+    outline.progression_notes = _normalize_list(
+        outline.progression_notes, max_items=12, item_max_length=250
+    )
     outline.beats = outline.beats[:target_chapters]
     normalized_beats: list[StoryBeat] = []
     for index, beat in enumerate(outline.beats, start=1):
         normalized_beats.append(
             StoryBeat(
                 chapter_number=index,
-                title=sanitize_text(beat.title or f"Chapter {index}", max_length=120, field_name="beat_title"),
-                objective=sanitize_text(beat.objective or "Advance the story.", max_length=300, field_name="beat_objective"),
-                conflict=sanitize_optional_text(beat.conflict, max_length=300, field_name="beat_conflict"),
-                reveal=sanitize_optional_text(beat.reveal, max_length=300, field_name="beat_reveal"),
+                title=sanitize_text(
+                    beat.title or f"Chapter {index}", max_length=120, field_name="beat_title"
+                ),
+                objective=sanitize_text(
+                    beat.objective or "Advance the story.",
+                    max_length=300,
+                    field_name="beat_objective",
+                ),
+                conflict=sanitize_optional_text(
+                    beat.conflict, max_length=300, field_name="beat_conflict"
+                ),
+                reveal=sanitize_optional_text(
+                    beat.reveal, max_length=300, field_name="beat_reveal"
+                ),
                 planned_choice_theme=sanitize_optional_text(
                     beat.planned_choice_theme,
                     max_length=120,
@@ -192,20 +231,30 @@ def _normalize_outline(outline: StoryOutline, target_chapters: int) -> StoryOutl
 
 def _normalize_canon(canon: StoryCanon) -> StoryCanon:
     return StoryCanon(
-        current_location=sanitize_optional_text(canon.current_location, max_length=120, field_name="current_location"),
+        current_location=sanitize_optional_text(
+            canon.current_location, max_length=120, field_name="current_location"
+        ),
         active_companions=_normalize_list(canon.active_companions, max_items=8, item_max_length=60),
         inventory=_normalize_list(canon.inventory, max_items=12, item_max_length=80),
-        revealed_information=_normalize_list(canon.revealed_information, max_items=20, item_max_length=200),
-        unresolved_threads=_normalize_list(canon.unresolved_threads, max_items=12, item_max_length=200),
+        revealed_information=_normalize_list(
+            canon.revealed_information, max_items=20, item_max_length=200
+        ),
+        unresolved_threads=_normalize_list(
+            canon.unresolved_threads, max_items=12, item_max_length=200
+        ),
         relationship_states={
-            sanitize_text(name, max_length=60, field_name="relationship_name"): sanitize_optional_text(
+            sanitize_text(
+                name, max_length=60, field_name="relationship_name"
+            ): sanitize_optional_text(
                 state,
                 max_length=160,
                 field_name="relationship_state",
             )
             for name, state in canon.relationship_states.items()
         },
-        latest_status=sanitize_optional_text(canon.latest_status, max_length=240, field_name="latest_status"),
+        latest_status=sanitize_optional_text(
+            canon.latest_status, max_length=240, field_name="latest_status"
+        ),
     )
 
 
@@ -216,10 +265,14 @@ def _normalize_manga_page(manga_page: MangaPage) -> MangaPage:
     for panel in manga_page.panels[:4]:
         panels.append(
             MangaPanel(
-                position=sanitize_optional_text(panel.position, max_length=40, field_name="panel_position"),
+                position=sanitize_optional_text(
+                    panel.position, max_length=40, field_name="panel_position"
+                ),
                 scene=sanitize_text(panel.scene, max_length=500, field_name="panel_scene"),
-                focus=sanitize_optional_text(panel.focus, max_length=40, field_name="panel_focus") or "medium shot",
-                mood=sanitize_optional_text(panel.mood, max_length=40, field_name="panel_mood") or "dramatic",
+                focus=sanitize_optional_text(panel.focus, max_length=40, field_name="panel_focus")
+                or "medium shot",
+                mood=sanitize_optional_text(panel.mood, max_length=40, field_name="panel_mood")
+                or "dramatic",
             )
         )
     if not panels:
@@ -227,7 +280,10 @@ def _normalize_manga_page(manga_page: MangaPage) -> MangaPage:
     return MangaPage(
         layout=layout,
         panels=panels,
-        dominant_mood=sanitize_optional_text(manga_page.dominant_mood, max_length=40, field_name="dominant_mood") or "dramatic",
+        dominant_mood=sanitize_optional_text(
+            manga_page.dominant_mood, max_length=40, field_name="dominant_mood"
+        )
+        or "dramatic",
     )
 
 
@@ -236,24 +292,36 @@ def _normalize_state_changes(state_changes: dict) -> dict:
         raise GuardrailViolation("state_changes must be a dictionary.")
     relationship_states = state_changes.get("relationship_states", {}) or {}
     return {
-        "location": sanitize_optional_text(state_changes.get("location", ""), max_length=120, field_name="state_location"),
-        "companions": _normalize_list(state_changes.get("companions", []) or [], max_items=8, item_max_length=60),
-        "inventory": _normalize_list(state_changes.get("inventory", []) or [], max_items=12, item_max_length=80),
-        "new_info": _normalize_list(state_changes.get("new_info", []) or [], max_items=10, item_max_length=200),
+        "location": sanitize_optional_text(
+            state_changes.get("location", ""), max_length=120, field_name="state_location"
+        ),
+        "companions": _normalize_list(
+            state_changes.get("companions", []) or [], max_items=8, item_max_length=60
+        ),
+        "inventory": _normalize_list(
+            state_changes.get("inventory", []) or [], max_items=12, item_max_length=80
+        ),
+        "new_info": _normalize_list(
+            state_changes.get("new_info", []) or [], max_items=10, item_max_length=200
+        ),
         "unresolved_threads": _normalize_list(
             state_changes.get("unresolved_threads", []) or [],
             max_items=10,
             item_max_length=200,
         ),
         "relationship_states": {
-            sanitize_text(name, max_length=60, field_name="state_relationship_name"): sanitize_optional_text(
+            sanitize_text(
+                name, max_length=60, field_name="state_relationship_name"
+            ): sanitize_optional_text(
                 state,
                 max_length=160,
                 field_name="state_relationship_value",
             )
             for name, state in relationship_states.items()
         },
-        "status": sanitize_optional_text(state_changes.get("status", ""), max_length=240, field_name="state_status"),
+        "status": sanitize_optional_text(
+            state_changes.get("status", ""), max_length=240, field_name="state_status"
+        ),
     }
 
 
@@ -266,7 +334,11 @@ def _normalize_options(options: list[NextOption]) -> list[NextOption]:
         if text_key in seen_texts:
             continue
         seen_texts.add(text_key)
-        consequence_type = option.consequence_type if option.consequence_type in ALLOWED_CONSEQUENCE_TYPES else "exploration"
+        consequence_type = (
+            option.consequence_type
+            if option.consequence_type in ALLOWED_CONSEQUENCE_TYPES
+            else "exploration"
+        )
         normalized.append(
             NextOption(
                 id=(option.id or chr(64 + index))[:1].upper(),
@@ -282,7 +354,9 @@ def _normalize_list(values: list[str], *, max_items: int, item_max_length: int) 
     normalized: list[str] = []
     seen: set[str] = set()
     for raw in values[:max_items]:
-        cleaned = sanitize_optional_text(str(raw), max_length=item_max_length, field_name="list_item")
+        cleaned = sanitize_optional_text(
+            str(raw), max_length=item_max_length, field_name="list_item"
+        )
         if not cleaned:
             continue
         key = cleaned.lower()

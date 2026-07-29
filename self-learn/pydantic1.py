@@ -1,15 +1,17 @@
-from fastapi import Depends, FastAPI, HTTPException, status
-from pydantic import BaseModel, Field, EmailStr
 from typing import Annotated, List
-from fastapi import Body
+
+from fastapi import FastAPI
+from pydantic import BaseModel, Field
 
 app = FastAPI()
 
+
 class User(BaseModel):
-    name : str
-    description : str | None = None
+    name: str
+    description: str | None = None
     price: float
-    tax : float
+    tax: float
+
 
 @app.post("/users")
 async def create_users(user: User):
@@ -20,24 +22,27 @@ async def create_users(user: User):
 
     return users_dict
 
+
 class Product(BaseModel):
     name: Annotated[str, Field(min_length=1, max_length=100)]
-    description: Annotated[str, Field(default = None, max_length=100)]
+    description: Annotated[str, Field(default=None, max_length=100)]
     tags: list[str]
+
 
 class Image(BaseModel):
     url: Annotated[str, Field(min_length=1, max_length=100)]
+
 
 class Product(BaseModel):
     name: str
     images: List[Image] = []
 
+
 @app.put("/users/{user_id}")
 async def update_user(
-        user_id: int,
-        user: User,
-        q: str | None = None,
-
+    user_id: int,
+    user: User,
+    q: str | None = None,
 ):
     result = {"user_id": user_id, **user.dict()}
     if q:
@@ -47,8 +52,8 @@ async def update_user(
 
 @app.put("/users/{user_id}/full")
 async def update_user_full(
-        user_id: int,
-        user: User,
-        importance: Annotated[int, Field(gt=0)],
+    user_id: int,
+    user: User,
+    importance: Annotated[int, Field(gt=0)],
 ):
     return {"user_id": user_id, "importance": importance}

@@ -1,4 +1,15 @@
-from src.schemas.story import Chapter, MangaPage, MangaPanel, MemoryEntry, StoryBeat, StoryCanon, StoryOutline, StorySession, WorldBible, Character
+from src.schemas.story import (
+    Chapter,
+    Character,
+    MangaPage,
+    MangaPanel,
+    MemoryEntry,
+    StoryBeat,
+    StoryCanon,
+    StoryOutline,
+    StorySession,
+    WorldBible,
+)
 from src.services.memory_service import build_writer_memory_payload, select_relevant_memories
 
 
@@ -11,7 +22,9 @@ def _build_session() -> StorySession:
             art_style="anime",
             tone="dramatic",
             setting="Ancient ruins",
-            protagonist=Character(name="Kael", role="protagonist", appearance="Hero", sd_anchor="silver hair"),
+            protagonist=Character(
+                name="Kael", role="protagonist", appearance="Hero", sd_anchor="silver hair"
+            ),
             side_characters=[],
             lore="Old gods and broken seals.",
             target_chapters=4,
@@ -23,8 +36,18 @@ def _build_session() -> StorySession:
             ending_vision="Truth beneath the city.",
             beats=[
                 StoryBeat(1, "Gate", "Enter the ruins", "Fear", "A seal", "exploration", ["Gate"]),
-                StoryBeat(2, "Archive", "Find the archive", "A rival arrives", "The map is alive", "dialogue", ["Map", "Archive"]),
-                StoryBeat(3, "Vault", "Reach the vault", "Trap", "Ancestor secret", "magic", ["Vault"]),
+                StoryBeat(
+                    2,
+                    "Archive",
+                    "Find the archive",
+                    "A rival arrives",
+                    "The map is alive",
+                    "dialogue",
+                    ["Map", "Archive"],
+                ),
+                StoryBeat(
+                    3, "Vault", "Reach the vault", "Trap", "Ancestor secret", "magic", ["Vault"]
+                ),
                 StoryBeat(4, "Core", "Decide fate", "Collapse", "Final truth", "combat", ["Core"]),
             ],
         ),
@@ -44,7 +67,10 @@ def _build_session() -> StorySession:
             summary="Kael opened the ancient gate and met Mira.",
             key_events=["Opened the gate", "Met Mira"],
             chosen_option="Open the gate",
-            canon_snapshot={"current_location": "Outer gate", "unresolved_threads": ["Who built the gate?"]},
+            canon_snapshot={
+                "current_location": "Outer gate",
+                "unresolved_threads": ["Who built the gate?"],
+            },
         ),
         MemoryEntry(
             chapter_number=2,
@@ -60,7 +86,11 @@ def _build_session() -> StorySession:
             title="Gate",
             choice_that_led_here="",
             narrative_text="Gate text",
-            manga_page=MangaPage(layout="2x2", panels=[MangaPanel("top-left", "gate scene", "wide shot", "dramatic")], dominant_mood="dramatic"),
+            manga_page=MangaPage(
+                layout="2x2",
+                panels=[MangaPanel("top-left", "gate scene", "wide shot", "dramatic")],
+                dominant_mood="dramatic",
+            ),
             chapter_ending="The gate opened.",
             key_events=["Opened the gate", "Met Mira"],
             state_changes={},
@@ -72,7 +102,11 @@ def _build_session() -> StorySession:
             title="Archive",
             choice_that_led_here="Trust the map",
             narrative_text="Archive text",
-            manga_page=MangaPage(layout="2x2", panels=[MangaPanel("top-left", "archive scene", "wide shot", "mysterious")], dominant_mood="mysterious"),
+            manga_page=MangaPage(
+                layout="2x2",
+                panels=[MangaPanel("top-left", "archive scene", "wide shot", "mysterious")],
+                dominant_mood="mysterious",
+            ),
             chapter_ending="The map pulsed with light.",
             key_events=["Found the living map", "Reached the archive entrance"],
             state_changes={},

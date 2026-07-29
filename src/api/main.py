@@ -1,17 +1,20 @@
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from contextlib import asynccontextmanager
-import os
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from src.api.router import api_router, page_router
-from src.database.session import engine, Base
+from src.database.session import Base, engine
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
+
 
 app = FastAPI(title="GenStory AI API", lifespan=lifespan)
 

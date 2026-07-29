@@ -48,7 +48,9 @@ class InteractionManagerAgent(BaseStoryAgent):
 
         chapter.next_options = self._parse_options(payload.get("next_options", []) or [])
         chapter.summary = self._format_summary(payload.get("summary", []) or chapter.key_events)
-        session.canon = self._merge_canon(session.canon, chapter.state_changes, payload.get("canon_update", {}) or {})
+        session.canon = self._merge_canon(
+            session.canon, chapter.state_changes, payload.get("canon_update", {}) or {}
+        )
         session.memory.append(
             MemoryEntry(
                 chapter_number=chapter.chapter_number,
