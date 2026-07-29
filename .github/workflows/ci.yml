@@ -1,70 +1,147 @@
-name: GenStory CI Pipeline
+name: GenStory Production CI/CD Pipeline
 
-# 1. Triggers: Cấu hình điều kiện kích hoạt pipeline
 on:
   push:
-    branches: [ main, master ] # Kích hoạt khi có code mới push lên main hoặc master
+    branches: [ main, master ]
   pull_request:
-    branches: [ main, master ] # Kích hoạt khi có Pull Request trỏ vào main hoặc master
+    branches: [ main, master ]
+
+# Concurrency control: Hủy các workflow run cũ trên cùng branch/PR khi có push mới
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # Job 1: Chạy kiểm thử tự động (Unit Tests)
-  test:
-    name: Run Python Tests
-    runs-on: ubuntu-latest # Chạy trên máy ảo Ubuntu do GitHub cung cấp miễn phí
-
-    steps:
-      # Bước 1: Pull mã nguồn từ GitHub vào máy ảo CI
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Bước 2: Cài đặt môi trường Python
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10' # Phiên bản Python tương thích với dự án
-
-      # Bước 3: Cache các thư viện đã tải về để tăng tốc độ chạy CI ở những lần sau
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      # Bước 4: Cài đặt các dependencies cần thiết từ requirements.txt
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      # Bước 5: Chạy các bài test bằng pytest
-      - name: Run tests with pytest
-        env:
-          PYTHONPATH: . # Thiết lập đường dẫn import để python nhận biết được thư mục src
-        run: |
-          pytest
-
-  # Job 2: Kiểm tra build Docker image để đảm bảo không lỗi Dockerfile
-  build-docker:
-    name: Build & Verify Docker Image
-    needs: test # Chỉ chạy job này nếu job 'test' ở trên thành công
+  # -------------------------------------------------------------
+  # Job 1: Code Quality & Formatting Check (Ruff)
+  # -------------------------------------------------------------
+  code-quality:
+    name: Code Quality & Linting
     runs-on: ubuntu-latest
 
     steps:
-      # Bước 1: Pull mã nguồn vào máy ảo
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Bước 2: Thiết lập Docker Buildx (công cụ build Docker hiện đại)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Linting Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Run Ruff Linter
+        run: ruff check .
+
+      - name: Run Ruff Formatter Check
+        run: ruff format --check .
+
+  # -------------------------------------------------------------
+  # Job 2: Security & Vulnerability Audit (Bandit & Pip-Audit)
+  # -------------------------------------------------------------
+  security-scan:
+    name: Security & Vulnerability Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Security Scanners
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit pip-audit
+
+      - name: Run Bandit (SAST Python Security Scanner)
+        run: |
+          bandit -r src/ -x src/tests -ll
+
+      - name: Run Pip-Audit (Dependency Vulnerability Scanner)
+        run: |
+          pip-audit -r requirements.txt || echo "::warning title=Dependency Vulnerabilities Detected::Review dependency vulnerabilities."
+
+  # -------------------------------------------------------------
+  # Job 3: Automated Testing & Coverage Report (Pytest)
+  # -------------------------------------------------------------
+  test:
+    name: Run Unit Tests & Coverage
+    needs: [code-quality, security-scan]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-cov
+
+      - name: Run Pytest with Coverage
+        env:
+          PYTHONPATH: .
+          TESTING: "true"
+        run: |
+          pytest --cov=src --cov-report=term-missing --cov-report=xml
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: coverage.xml
+          retention-days: 7
+
+  # -------------------------------------------------------------
+  # Job 4: Build & Verify Docker Image + Container Scan (Trivy)
+  # -------------------------------------------------------------
+  build-docker:
+    name: Docker Build & Image Security Scan
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (Multi-architecture support)
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Bước 3: Thử nghiệm build Docker image (chưa đẩy lên registry)
-      - name: Build Docker Image (Verify Only)
+      - name: Build Docker Image (Verify & Cache)
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false # Đặt là false vì ta chỉ kiểm tra xem build có lỗi hay không
-          tags: genstory-fastapi:latest
+          push: false
+          tags: genstory-fastapi:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
+
+      - name: Run Trivy Vulnerability Scanner on Container Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'genstory-fastapi:${{ github.sha }}'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
