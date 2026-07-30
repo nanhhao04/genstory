@@ -29,5 +29,5 @@ RUN mkdir -p logs src/outputs src/ui/static/exports && \
 # Expose ports (FastAPI: 8000, Gradio: 7860)
 EXPOSE 8000 7860
 
-# Default command
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default command (uses $PORT provided by cloud platforms like Railway)
+CMD ["sh", "-c", "uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
