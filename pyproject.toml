@@ -1,3 +1,37 @@
+[project]
+name = "genstory"
+version = "0.1.0"
+description = "GenStory FastAPI Application"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "gradio",
+    "pydantic",
+    "pydantic-settings",
+    "python-dotenv",
+    "pyyaml",
+    "jinja2",
+    "aiofiles",
+    "google-genai",
+    "openai",
+    "langgraph",
+    "huggingface_hub",
+    "Pillow",
+    "sqlalchemy",
+    "asyncpg",
+    "arq",
+    "redis",
+    "fpdf2",
+    "fonttools",
+    "requests",
+    "python-jose[cryptography]",
+    "passlib[bcrypt]",
+    "python-multipart",
+    "prometheus-fastapi-instrumentator",
+]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
