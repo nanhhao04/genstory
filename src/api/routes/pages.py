@@ -1,9 +1,16 @@
+import os
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 router = APIRouter(tags=["pages"])
-templates = Jinja2Templates(directory="src/ui/templates")
+
+# Absolute path resolution for Jinja2 templates in serverless environment
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+TEMPLATES_DIR = os.path.join(BASE_DIR, "ui", "templates")
+
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 
 @router.get("/auth", response_class=HTMLResponse)

@@ -30,17 +30,21 @@ try:
 except Exception as e:
     logger.warning(f"Prometheus instrumentation warning: {e}")
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, "ui", "static")
+OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
+
 try:
-    os.makedirs("src/outputs", exist_ok=True)
-    os.makedirs("src/ui/static", exist_ok=True)
+    os.makedirs(OUTPUTS_DIR, exist_ok=True)
+    os.makedirs(STATIC_DIR, exist_ok=True)
 except Exception:
     pass
 
-if os.path.exists("src/ui/static"):
-    app.mount("/static", StaticFiles(directory="src/ui/static"), name="static")
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-if os.path.exists("src/outputs"):
-    app.mount("/outputs", StaticFiles(directory="src/outputs"), name="outputs")
+if os.path.exists(OUTPUTS_DIR):
+    app.mount("/outputs", StaticFiles(directory=OUTPUTS_DIR), name="outputs")
 
 app.include_router(api_router)
 app.include_router(page_router)
